@@ -14,6 +14,7 @@ supply legally obtained copies of the required assets yourself.
 - Native macOS build
 - Browser/WebAssembly build with persistent keyboard remapping, controller
   detection, and SDL gamepad support
+- Automatic browser memory-card persistence with raw card import/export
 - Bring-your-own BIOS and CUE/BIN files in the browser
 
 Android, widescreen, higher frame rates, and additional quality-of-life
@@ -73,6 +74,10 @@ are stored locally in IndexedDB. Returning visits restore the files
 automatically when permission remains active, or offer one **Reconnect saved
 files** action when the browser asks for permission again. No literal path or
 game-file contents are uploaded.
+
+The browser **Saves** panel automatically preserves both real PlayStation
+memory-card slots in IndexedDB. Raw 128 KiB `.mcd` cards can be imported before
+launch or exported at any time for backups and native/emulator interoperability.
 
 To assemble the asset-free Cloudflare Pages package after building:
 

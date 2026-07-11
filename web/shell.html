@@ -298,6 +298,16 @@
     .binding-button.listening { color: var(--muted); }
     .controls-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; }
     .controls-note { margin: 0; color: var(--subtle); font-size: 10px; line-height: 1.45; }
+    .save-actions { display: grid; grid-template-columns: minmax(0, 1fr) repeat(2, auto); gap: 8px; margin-top: 16px; }
+    .save-slot {
+      min-height: 40px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface-soft);
+      color: var(--foreground);
+      font-size: 12px;
+    }
     #status {
       min-width: 0;
       margin-left: auto;
@@ -366,6 +376,7 @@
       .controls-content { padding: 16px; }
       .bindings-grid { grid-template-columns: 1fr; }
       .controls-footer { align-items: stretch; flex-direction: column; }
+      .save-actions { grid-template-columns: 1fr; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
@@ -418,6 +429,7 @@
         <div class="actions">
           <button class="action-button" id="start" disabled>Start game</button>
           <button class="action-button secondary" id="reconnect-files" type="button" hidden>Reconnect saved files</button>
+          <button class="action-button secondary" id="saves" type="button">Saves</button>
           <button class="action-button secondary" id="controls" type="button">Controls</button>
           <button class="action-button secondary" id="test-start" type="button" hidden>Test Start input</button>
           <button class="action-button secondary" id="fullscreen" type="button">Fullscreen</button>
@@ -448,6 +460,29 @@
     </div>
   </div>
 </dialog>
+<dialog class="controls-dialog" id="saves-dialog" aria-labelledby="saves-title">
+  <div class="controls-content">
+    <div class="controls-heading">
+      <div>
+        <p class="section-label">Memory card</p>
+        <h2 id="saves-title">Browser saves</h2>
+      </div>
+      <button class="dialog-close" id="saves-close" type="button" aria-label="Close saves">×</button>
+    </div>
+    <div class="controller-state connected" id="memory-card-status">Checking this browser for memory cards…</div>
+    <p class="controls-copy">Both PlayStation memory-card slots are saved automatically. Exported cards are raw 128 KiB files compatible with the native port and most emulators.</p>
+    <div class="save-actions">
+      <select class="save-slot" id="memory-card-slot" aria-label="Memory card slot">
+        <option value="1">Memory card 1</option>
+        <option value="2">Memory card 2</option>
+      </select>
+      <button class="action-button secondary" id="memory-card-export" type="button">Export card</button>
+      <button class="action-button secondary" id="memory-card-import" type="button">Import card</button>
+      <input class="fallback-file-input" id="memory-card-file" type="file" accept=".mcd,.mcr,application/octet-stream">
+    </div>
+    <p class="controls-note" id="memory-card-note">Import a card before starting the game. Export is available at any time.</p>
+  </div>
+</dialog>
 <script>
   const biosInput = document.getElementById('bios');
   const discInput = document.getElementById('disc');
@@ -455,6 +490,7 @@
   const discPickerButton = document.getElementById('disc-picker');
   const reconnectFilesButton = document.getElementById('reconnect-files');
   const startButton = document.getElementById('start');
+  const savesButton = document.getElementById('saves');
   const controlsButton = document.getElementById('controls');
   const testStartButton = document.getElementById('test-start');
   const statusNode = document.getElementById('status');
@@ -472,6 +508,13 @@
   let rememberedBiosHandle = null;
   let rememberedDiscHandles = [];
   let rememberedHandlesFound = false;
+  let memoryCardsReady = Promise.resolve();
+  let memoryCardSyncTimer = null;
+  let memoryCardSyncing = false;
+  let memoryCardLastSaved = null;
+  const memoryCardHashes = [null, null];
+  const memoryCardPaths = ['/saves/card1.mcd', '/saves/card2.mcd'];
+  const memoryCardSize = 128 * 1024;
 
   const bindingDefs = [
     ['up', 'D-pad up', 'ArrowUp'], ['down', 'D-pad down', 'ArrowDown'],
@@ -846,6 +889,182 @@
     setStatus(restored ? 'Ready — saved game files restored.' : 'File access was not granted.');
     updateStart();
   });
+
+  function openMemoryCardDatabase() {
+    return new Promise((resolve, reject) => {
+      const request = indexedDB.open('repsiman-memory-cards', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('cards');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function readStoredMemoryCard(slot) {
+    const db = await openMemoryCardDatabase();
+    try {
+      return await new Promise((resolve, reject) => {
+        const request = db.transaction('cards').objectStore('cards').get(`slot-${slot}`);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+    } finally {
+      db.close();
+    }
+  }
+
+  async function storeMemoryCard(slot, bytes) {
+    const db = await openMemoryCardDatabase();
+    try {
+      await new Promise((resolve, reject) => {
+        const request = db.transaction('cards', 'readwrite').objectStore('cards').put(
+          new Uint8Array(bytes), `slot-${slot}`);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+    } finally {
+      db.close();
+    }
+  }
+
+  function validMemoryCard(bytes) {
+    return bytes?.byteLength === memoryCardSize && bytes[0] === 0x4D && bytes[1] === 0x43;
+  }
+
+  function memoryCardHash(bytes) {
+    let hash = 2166136261;
+    for (let i = 0; i < bytes.length; i++) hash = Math.imul(hash ^ bytes[i], 16777619);
+    return hash >>> 0;
+  }
+
+  function memoryCardExists(slot) {
+    if (!runtimeReady) return false;
+    try { return Module.FS.analyzePath(memoryCardPaths[slot - 1]).exists; }
+    catch (_) { return false; }
+  }
+
+  function updateMemoryCardControls() {
+    const slot = Number(document.getElementById('memory-card-slot').value);
+    document.getElementById('memory-card-export').disabled = !memoryCardExists(slot);
+    document.getElementById('memory-card-import').disabled = started;
+    document.getElementById('memory-card-note').textContent = started
+      ? 'Autosave is active. Import is disabled while the game is running; export remains available.'
+      : 'Import a card before starting the game. Export is available whenever a card exists.';
+  }
+
+  async function restoreMemoryCards() {
+    Module.FS.mkdirTree('/saves');
+    let restored = 0;
+    try {
+      for (let slot = 1; slot <= 2; slot++) {
+        const stored = await readStoredMemoryCard(slot);
+        const bytes = stored instanceof Uint8Array ? stored : stored ? new Uint8Array(stored) : null;
+        if (!validMemoryCard(bytes)) continue;
+        Module.FS.writeFile(memoryCardPaths[slot - 1], bytes);
+        memoryCardHashes[slot - 1] = memoryCardHash(bytes);
+        restored++;
+      }
+      document.getElementById('memory-card-status').textContent = restored
+        ? `${restored} saved memory card${restored === 1 ? '' : 's'} restored from this browser.`
+        : 'No saved memory cards yet. Fresh cards will be created when the game starts.';
+    } catch (error) {
+      console.warn('Could not restore browser memory cards:', error);
+      document.getElementById('memory-card-status').textContent =
+        'Browser persistence is unavailable; cards will last for this tab only.';
+    }
+    updateMemoryCardControls();
+  }
+
+  async function syncMemoryCards() {
+    if (!runtimeReady || !started || memoryCardSyncing) return;
+    memoryCardSyncing = true;
+    let changed = 0;
+    try {
+      for (let slot = 1; slot <= 2; slot++) {
+        if (!memoryCardExists(slot)) continue;
+        const bytes = Module.FS.readFile(memoryCardPaths[slot - 1]);
+        if (!validMemoryCard(bytes)) continue;
+        const hash = memoryCardHash(bytes);
+        if (hash === memoryCardHashes[slot - 1]) continue;
+        await storeMemoryCard(slot, bytes);
+        memoryCardHashes[slot - 1] = hash;
+        changed++;
+      }
+      if (changed) {
+        memoryCardLastSaved = new Date();
+        document.getElementById('memory-card-status').textContent =
+          `Saved locally at ${memoryCardLastSaved.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}.`;
+      }
+    } catch (error) {
+      console.warn('Could not persist browser memory cards:', error);
+      document.getElementById('memory-card-status').textContent =
+        'Autosave could not access browser storage. Export your card before closing the tab.';
+    } finally {
+      memoryCardSyncing = false;
+      updateMemoryCardControls();
+    }
+  }
+
+  function beginMemoryCardAutosave() {
+    if (memoryCardSyncTimer) return;
+    setTimeout(syncMemoryCards, 1200);
+    memoryCardSyncTimer = setInterval(syncMemoryCards, 3000);
+    updateMemoryCardControls();
+  }
+
+  const savesDialog = document.getElementById('saves-dialog');
+  const memoryCardFileInput = document.getElementById('memory-card-file');
+  savesButton.addEventListener('click', async () => {
+    await memoryCardsReady;
+    await syncMemoryCards();
+    updateMemoryCardControls();
+    savesDialog.showModal();
+  });
+  document.getElementById('saves-close').addEventListener('click', () => savesDialog.close());
+  savesDialog.addEventListener('click', event => {
+    if (event.target === savesDialog) savesDialog.close();
+  });
+  savesDialog.addEventListener('close', () => canvas.focus());
+  document.getElementById('memory-card-slot').addEventListener('change', updateMemoryCardControls);
+  document.getElementById('memory-card-import').addEventListener('click', () => {
+    if (!started) memoryCardFileInput.click();
+  });
+  memoryCardFileInput.addEventListener('change', async () => {
+    const file = memoryCardFileInput.files?.[0];
+    memoryCardFileInput.value = '';
+    if (!file || started) return;
+    const slot = Number(document.getElementById('memory-card-slot').value);
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    if (!validMemoryCard(bytes)) {
+      document.getElementById('memory-card-status').textContent =
+        'Import rejected: choose a valid raw 128 KiB PlayStation memory card.';
+      return;
+    }
+    Module.FS.mkdirTree('/saves');
+    Module.FS.writeFile(memoryCardPaths[slot - 1], bytes);
+    memoryCardHashes[slot - 1] = memoryCardHash(bytes);
+    await storeMemoryCard(slot, bytes);
+    document.getElementById('memory-card-status').textContent =
+      `Imported ${file.name} into memory card ${slot}.`;
+    updateMemoryCardControls();
+  });
+  document.getElementById('memory-card-export').addEventListener('click', async () => {
+    const slot = Number(document.getElementById('memory-card-slot').value);
+    await syncMemoryCards();
+    if (!memoryCardExists(slot)) return;
+    const bytes = Module.FS.readFile(memoryCardPaths[slot - 1]);
+    if (!validMemoryCard(bytes)) return;
+    const url = URL.createObjectURL(new Blob([bytes], { type: 'application/octet-stream' }));
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `RepsiMan-card${slot}.mcd`;
+    link.click();
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'hidden') syncMemoryCards();
+  });
+  window.addEventListener('pagehide', syncMemoryCards);
+
   if (preloadedTestAssets) testStartButton.hidden = false;
   if (remoteAssetsToken) {
     document.body.classList.add('remote-assets');
@@ -915,6 +1134,7 @@
       updateStart();
       setRunning(true);
       Module.FS.mkdirTree('/saves');
+      await memoryCardsReady;
       Module.FS.writeFile('/keybinds.ini', keybindsIni());
       if (preloadedTestAssets) {
         const cueName = 'Pepsiman (Japan).cue';
@@ -928,6 +1148,7 @@
           '--renderer', 'software',
           '--no-launcher'
         ]);
+        beginMemoryCardAutosave();
         setStatus('Running — click the canvas for audio and controls.');
         return;
       }
@@ -962,6 +1183,7 @@
           '--renderer', 'software',
           '--no-launcher'
         ]);
+        beginMemoryCardAutosave();
         setStatus('Running — tap the canvas for audio and controls.');
         return;
       }
@@ -987,6 +1209,7 @@
         '--renderer', 'software',
         '--no-launcher'
       ]);
+      beginMemoryCardAutosave();
       setStatus('Running — click the canvas for audio and controls.');
     } catch (error) {
       started = false;
@@ -1010,6 +1233,8 @@
     setStatus,
     async onRuntimeInitialized() {
       runtimeReady = true;
+      memoryCardsReady = restoreMemoryCards();
+      await memoryCardsReady;
       if (preloadedTestAssets) {
         setStatus('Ready — private test assets are preloaded.');
       } else if (remoteAssetsToken) {

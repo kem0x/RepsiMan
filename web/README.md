@@ -34,6 +34,11 @@ The **Controls** panel supports persistent Player 1 keyboard remapping before
 or during play and reports any browser-visible controller. Standard gamepads
 use the normal south/east/west/north PlayStation face-button layout.
 
+The **Saves** panel automatically persists both raw PlayStation memory cards in
+IndexedDB. It can import a 128 KiB `.mcd`/`.mcr` card before launch and export
+either slot at any time. Export important progress before clearing site data or
+moving to a different browser profile.
+
 The custom server is required: browser pthreads need the COOP/COEP headers it
 adds. Opening the HTML file directly with `file://` will not work.
 
@@ -77,7 +82,8 @@ load. Keep it on a trusted private network and stop the server after testing.
 - The complete disc is retained in browser-managed memory for each session.
   Range-backed/streaming disc access is the next major web optimization; disc
   tracks no longer consume the WASM gameplay heap.
-- Memory cards currently live in temporary MEMFS and are lost on reload.
+- Memory cards persist per browser origin. Cross-browser or cross-device
+  transfer currently requires manual export/import.
 - Presentation is the faithful 4:3 software path. WebGL, widescreen, and higher
   internal resolutions are later enhancements.
 - Keyboard remapping and SDL's browser gamepad path are available. Individual
