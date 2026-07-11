@@ -23,6 +23,7 @@
 /build/
 /build-web/
 /dist-web/
+/.wrangler/
 /web/certs/
 /web/cert-download/
 /psxrecomp/recompiler/build/
