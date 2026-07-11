@@ -24,8 +24,12 @@ Serve it with the included local server:
 python3 web/serve.py
 ```
 
-Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Select the 512 KiB PS1
-BIOS, then select the CUE and every BIN track together. Press **Start game**.
+Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Choose the 512 KiB PS1
+BIOS, then choose the CUE and every BIN track together. Press **Start game**.
+Chromium-based browsers remember permission-backed file handles in IndexedDB;
+later visits restore them automatically or show **Reconnect saved files** if
+permission needs to be renewed. Other browsers retain the normal per-session
+file picker fallback.
 The **Controls** panel supports persistent Player 1 keyboard remapping before
 or during play and reports any browser-visible controller. Standard gamepads
 use the normal south/east/west/north PlayStation face-button layout.

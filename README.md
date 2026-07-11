@@ -68,6 +68,12 @@ not work. The **Controls** panel remaps Player 1 keyboard input, saves it in the
 browser, and reports connected gamepads. See [web/README.md](web/README.md) for
 browser and LAN testing notes.
 
+On browsers with the File System Access API, the BIOS and disc picker handles
+are stored locally in IndexedDB. Returning visits restore the files
+automatically when permission remains active, or offer one **Reconnect saved
+files** action when the browser asks for permission again. No literal path or
+game-file contents are uploaded.
+
 To assemble the asset-free Cloudflare Pages package after building:
 
 ```sh
