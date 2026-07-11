@@ -1,0 +1,3 @@
+[submodule "psxrecomp"]
+	path = psxrecomp
+	url = https://github.com/kem0x/psxrecomp.git

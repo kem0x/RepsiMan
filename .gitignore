@@ -1,0 +1,37 @@
+# User-supplied copyrighted assets
+/SCPH1001.bin
+/SCPH1001.BIN
+/PEPSIMAN/
+/PEPSIMAN.rar
+/private/
+
+# Locally generated game and BIOS code/data
+/generated/
+/bios/
+/game/
+/cache/
+/overlay_captures.json
+/psx_last_run_report.json
+/starvation_dump.jsonl
+/psx_freeze_dump_*.json
+/psx_crash.txt
+*.mcd
+*.mcr
+*.pst
+
+# Build products and local configuration
+/build/
+/build-web/
+/dist-web/
+/web/certs/
+/web/cert-download/
+/psxrecomp/recompiler/build/
+/psxrecomp/runtime/build/
+bios.cfg
+disc.cfg
+settings.toml
+
+# Editors and operating systems
+.DS_Store
+.idea/
+.vscode/
