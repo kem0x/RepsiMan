@@ -5,6 +5,11 @@ the PlayStation game *Pepsiman*. The current milestone runs the original game
 logic on macOS and in a browser; portability and quality-of-life improvements
 are the next milestones.
 
+RepsiMan remains the game-specific repository and deployment. It is listed on
+the broader [Recomps](https://recomps.ol.mr) collection site, allowing future
+games to keep independent code, releases, browser storage, and compatibility
+notes.
+
 This repository does **not** include a PlayStation BIOS, game disc, extracted
 game executable, generated game code, memory cards, or save states. You must
 supply legally obtained copies of the required assets yourself.

@@ -47,6 +47,9 @@ files, memory cards, saves, crash dumps, TLS private keys, and local settings.
 RepsiMan deploys to its own Cloudflare Pages project and custom domain. This
 keeps large WASM updates out of the personal website's Git history and lets
 releases be versioned independently.
+The separate `kem0x/Recomps` project provides the collection directory at
+`recomps.ol.mr`; `repsiman.ol.mr` remains the Pepsiman game origin so existing
+IndexedDB memory cards and remembered file permissions continue to work.
 
 ## Legal review point
 
