@@ -39,6 +39,15 @@ IndexedDB. It can import a 128 KiB `.mcd`/`.mcr` card before launch and export
 either slot at any time. Export important progress before clearing site data or
 moving to a different browser profile.
 
+The **Settings** panel stores optional QoL choices in the browser. Its
+**Original** and **Enhanced** presets control fast boot, conservative 2x CD
+loading, low-latency input, focus pause, and output filtering; changing any of
+those switches selects **Custom**. Separate switches control memory-card
+autosave and remembered game-file handles. Options labelled **Next launch** are
+written into the generated runtime configuration when the game starts. The
+toolbar **Pause** button freezes the guest at a frame boundary and resumes it
+without advancing the game in the background.
+
 The custom server is required: browser pthreads need the COOP/COEP headers it
 adds. Opening the HTML file directly with `file://` will not work.
 

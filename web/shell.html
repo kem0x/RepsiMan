@@ -308,6 +308,65 @@
       color: var(--foreground);
       font-size: 12px;
     }
+    .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 18px 0; }
+    .preset-button {
+      min-height: 38px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .preset-button.active { border-color: var(--foreground); color: var(--foreground); }
+    .preset-button:disabled { cursor: default; opacity: 1; }
+    .settings-list { display: grid; gap: 8px; }
+    .setting-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 11px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .setting-copy { min-width: 0; }
+    .setting-name { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 550; }
+    .setting-description { margin: 4px 0 0; color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .restart-badge {
+      padding: 2px 5px;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      color: var(--subtle);
+      font-size: 8px;
+      font-weight: 500;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .setting-switch { position: relative; width: 40px; height: 22px; flex: 0 0 auto; }
+    .setting-switch input { position: absolute; opacity: 0; pointer-events: none; }
+    .setting-track {
+      position: absolute;
+      inset: 0;
+      border: 1px solid var(--border-hover);
+      border-radius: 999px;
+      background: var(--surface-soft);
+      transition: background-color .16s ease, border-color .16s ease;
+    }
+    .setting-track::after {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--muted);
+      content: "";
+      transition: transform .16s ease, background-color .16s ease;
+    }
+    .setting-switch input:checked + .setting-track { border-color: var(--foreground); background: var(--foreground); }
+    .setting-switch input:checked + .setting-track::after { background: var(--background); transform: translateX(18px); }
+    .setting-switch input:focus-visible + .setting-track { outline: 2px solid var(--foreground); outline-offset: 2px; }
+    .settings-status { margin: 14px 0 0; color: var(--muted); font-size: 10px; line-height: 1.5; }
     #status {
       min-width: 0;
       margin-left: auto;
@@ -319,6 +378,7 @@
     }
     .screen { display: grid; aspect-ratio: 4 / 3; min-height: 0; overflow: hidden; place-items: center; background: #000; }
     canvas { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; outline: none; }
+    html.smooth-output canvas { image-rendering: auto; }
     canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--foreground); }
     pre {
       max-height: 120px;
@@ -429,8 +489,10 @@
         <div class="actions">
           <button class="action-button" id="start" disabled>Start game</button>
           <button class="action-button secondary" id="reconnect-files" type="button" hidden>Reconnect saved files</button>
+          <button class="action-button secondary" id="pause" type="button" disabled>Pause</button>
           <button class="action-button secondary" id="saves" type="button">Saves</button>
           <button class="action-button secondary" id="controls" type="button">Controls</button>
+          <button class="action-button secondary" id="settings" type="button">Settings</button>
           <button class="action-button secondary" id="test-start" type="button" hidden>Test Start input</button>
           <button class="action-button secondary" id="fullscreen" type="button">Fullscreen</button>
         </div>
@@ -483,6 +545,24 @@
     <p class="controls-note" id="memory-card-note">Import a card before starting the game. Export is available at any time.</p>
   </div>
 </dialog>
+<dialog class="controls-dialog" id="settings-dialog" aria-labelledby="settings-title">
+  <div class="controls-content">
+    <div class="controls-heading">
+      <div>
+        <p class="section-label">Experience</p>
+        <h2 id="settings-title">Settings</h2>
+      </div>
+      <button class="dialog-close" id="settings-close" type="button" aria-label="Close settings">×</button>
+    </div>
+    <div class="preset-grid" aria-label="Settings preset">
+      <button class="preset-button" data-preset="original" type="button">Original</button>
+      <button class="preset-button" data-preset="enhanced" type="button">Enhanced</button>
+      <button class="preset-button" data-preset="custom" type="button" disabled>Custom</button>
+    </div>
+    <div class="settings-list" id="settings-list"></div>
+    <p class="settings-status" id="settings-status">Settings are saved in this browser.</p>
+  </div>
+</dialog>
 <script>
   const biosInput = document.getElementById('bios');
   const discInput = document.getElementById('disc');
@@ -490,8 +570,10 @@
   const discPickerButton = document.getElementById('disc-picker');
   const reconnectFilesButton = document.getElementById('reconnect-files');
   const startButton = document.getElementById('start');
+  const pauseButton = document.getElementById('pause');
   const savesButton = document.getElementById('saves');
   const controlsButton = document.getElementById('controls');
+  const settingsButton = document.getElementById('settings');
   const testStartButton = document.getElementById('test-start');
   const statusNode = document.getElementById('status');
   const logNode = document.getElementById('log');
@@ -515,6 +597,149 @@
   const memoryCardHashes = [null, null];
   const memoryCardPaths = ['/saves/card1.mcd', '/saves/card2.mcd'];
   const memoryCardSize = 128 * 1024;
+  let manualPaused = false;
+  let focusPaused = false;
+
+  const presetValues = {
+    original: {
+      fastBoot: false,
+      fastLoads: false,
+      lowLatencyInput: true,
+      pauseOnBlur: false,
+      smoothOutput: false
+    },
+    enhanced: {
+      fastBoot: true,
+      fastLoads: true,
+      lowLatencyInput: true,
+      pauseOnBlur: true,
+      smoothOutput: false
+    }
+  };
+  const settingDefs = [
+    ['fastBoot', 'Fast boot', 'Skip the PlayStation BIOS shell and start the game directly.', true],
+    ['fastLoads', 'Faster CD loading', 'Use a conservative 2× data-read speed while preserving CD audio.', true],
+    ['lowLatencyInput', 'Low-latency input', 'Sample controls again immediately before presenting each frame.', true],
+    ['pauseOnBlur', 'Pause when unfocused', 'Freeze the game when this tab is hidden or loses visibility.', false],
+    ['smoothOutput', 'Smooth output', 'Use browser filtering instead of crisp nearest-neighbor pixels.', false],
+    ['memoryCardAutosave', 'Memory-card autosave', 'Persist both real PS1 memory cards in this browser.', false],
+    ['rememberFiles', 'Remember game files', 'Store permission handles so BIOS and disc selections can be restored.', false]
+  ];
+  const settingsDefaults = {
+    ...presetValues.original,
+    memoryCardAutosave: true,
+    rememberFiles: true
+  };
+  let settings = { ...settingsDefaults };
+  try {
+    const savedSettings = JSON.parse(localStorage.getItem('repsiman-settings-v1') || '{}');
+    for (const [key] of settingDefs)
+      if (typeof savedSettings[key] === 'boolean') settings[key] = savedSettings[key];
+  } catch (_) {}
+
+  function activePreset() {
+    for (const name of ['original', 'enhanced']) {
+      if (Object.entries(presetValues[name]).every(([key, value]) => settings[key] === value)) return name;
+    }
+    return 'custom';
+  }
+
+  function persistSettings() {
+    localStorage.setItem('repsiman-settings-v1', JSON.stringify(settings));
+  }
+
+  function renderSettings() {
+    const preset = activePreset();
+    for (const button of document.querySelectorAll('[data-preset]'))
+      button.classList.toggle('active', button.dataset.preset === preset);
+    const list = document.getElementById('settings-list');
+    list.replaceChildren(...settingDefs.map(([key, name, description, restart]) => {
+      const row = document.createElement('div');
+      row.className = 'setting-row';
+      const copy = document.createElement('div');
+      copy.className = 'setting-copy';
+      const title = document.createElement('div');
+      title.className = 'setting-name';
+      title.append(document.createTextNode(name));
+      if (restart) {
+        const badge = document.createElement('span');
+        badge.className = 'restart-badge';
+        badge.textContent = 'Next launch';
+        title.append(badge);
+      }
+      const detail = document.createElement('p');
+      detail.className = 'setting-description';
+      detail.textContent = description;
+      copy.append(title, detail);
+      const label = document.createElement('label');
+      label.className = 'setting-switch';
+      const input = document.createElement('input');
+      input.type = 'checkbox';
+      input.checked = settings[key];
+      input.setAttribute('aria-label', name);
+      const track = document.createElement('span');
+      track.className = 'setting-track';
+      input.addEventListener('change', () => {
+        settings[key] = input.checked;
+        persistSettings();
+        applySettingChange(key);
+        renderSettings();
+      });
+      label.append(input, track);
+      row.append(copy, label);
+      return row;
+    }));
+  }
+
+  async function applySettingChange(key) {
+    document.documentElement.classList.toggle('smooth-output', settings.smoothOutput);
+    if (key === 'pauseOnBlur') {
+      focusPaused = settings.pauseOnBlur && document.visibilityState === 'hidden';
+      applyPauseState();
+    } else if (key === 'memoryCardAutosave' && runtimeReady) {
+      if (settings.memoryCardAutosave) {
+        if (started) {
+          beginMemoryCardAutosave();
+          syncMemoryCards();
+        } else {
+          memoryCardsReady = restoreMemoryCards();
+          await memoryCardsReady;
+        }
+      } else {
+        document.getElementById('memory-card-status').textContent =
+          'Memory-card autosave is off. Cards currently exist only in this tab.';
+        updateMemoryCardControls();
+      }
+    } else if (key === 'rememberFiles') {
+      if (!settings.rememberFiles) await clearRememberedHandles();
+      else if (runtimeReady && !started) await restoreRememberedAssets(false);
+    }
+    const definition = settingDefs.find(([setting]) => setting === key);
+    document.getElementById('settings-status').textContent = started && definition?.[3]
+      ? 'This change will apply the next time the game starts.'
+      : 'Settings are saved in this browser.';
+  }
+
+  function applyPauseState() {
+    const paused = manualPaused || focusPaused;
+    if (started && typeof Module?._psx_web_set_paused === 'function')
+      Module._psx_web_set_paused(paused ? 1 : 0);
+    pauseButton.textContent = paused ? 'Resume' : 'Pause';
+  }
+
+  function applyPreset(name) {
+    if (!presetValues[name]) return;
+    const changed = [];
+    for (const [key, value] of Object.entries(presetValues[name])) {
+      if (settings[key] !== value) changed.push(key);
+      settings[key] = value;
+    }
+    persistSettings();
+    for (const key of changed) applySettingChange(key);
+    renderSettings();
+  }
+
+  document.documentElement.classList.toggle('smooth-output', settings.smoothOutput);
 
   const bindingDefs = [
     ['up', 'D-pad up', 'ArrowUp'], ['down', 'D-pad down', 'ArrowDown'],
@@ -668,6 +893,30 @@
     renderBindings();
   }, true);
 
+  const settingsDialog = document.getElementById('settings-dialog');
+  renderSettings();
+  settingsButton.addEventListener('click', () => {
+    renderSettings();
+    settingsDialog.showModal();
+  });
+  document.getElementById('settings-close').addEventListener('click', () => settingsDialog.close());
+  settingsDialog.addEventListener('click', event => {
+    if (event.target === settingsDialog) settingsDialog.close();
+  });
+  settingsDialog.addEventListener('close', () => canvas.focus());
+  for (const button of document.querySelectorAll('[data-preset="original"], [data-preset="enhanced"]'))
+    button.addEventListener('click', () => applyPreset(button.dataset.preset));
+
+  pauseButton.addEventListener('click', () => {
+    if (!started) return;
+    manualPaused = !manualPaused;
+    applyPauseState();
+  });
+  document.addEventListener('visibilitychange', () => {
+    focusPaused = settings.pauseOnBlur && document.visibilityState === 'hidden';
+    applyPauseState();
+  });
+
   function syncThemeToggle() {
     const dark = document.documentElement.dataset.theme === 'dark';
     themeToggle.querySelector('span').textContent = dark ? '☾' : '☼';
@@ -764,7 +1013,7 @@
   }
 
   async function saveRememberedHandles() {
-    if (!rememberedBiosHandle && !rememberedDiscHandles.length) return;
+    if (!settings.rememberFiles || (!rememberedBiosHandle && !rememberedDiscHandles.length)) return;
     const db = await openAssetDatabase();
     try {
       await new Promise((resolve, reject) => {
@@ -780,6 +1029,27 @@
     }
   }
 
+  async function clearRememberedHandles() {
+    try {
+      const db = await openAssetDatabase();
+      try {
+        await new Promise((resolve, reject) => {
+          const request = db.transaction('handles', 'readwrite').objectStore('handles').delete('game-files');
+          request.onsuccess = () => resolve();
+          request.onerror = () => reject(request.error);
+        });
+      } finally {
+        db.close();
+      }
+    } catch (error) {
+      console.warn('Could not forget saved file handles:', error);
+    }
+    rememberedBiosHandle = null;
+    rememberedDiscHandles = [];
+    rememberedHandlesFound = false;
+    reconnectFilesButton.hidden = true;
+  }
+
   async function handlePermission(handle, requestAccess) {
     if (!handle) return false;
     if (typeof handle.queryPermission !== 'function') return requestAccess;
@@ -790,6 +1060,10 @@
   }
 
   async function restoreRememberedAssets(requestAccess) {
+    if (!settings.rememberFiles) {
+      reconnectFilesButton.hidden = true;
+      return false;
+    }
     try {
       const stored = await readRememberedHandles();
       rememberedBiosHandle = stored?.bios?.kind === 'file' ? stored.bios : null;
@@ -946,13 +1220,21 @@
     const slot = Number(document.getElementById('memory-card-slot').value);
     document.getElementById('memory-card-export').disabled = !memoryCardExists(slot);
     document.getElementById('memory-card-import').disabled = started;
-    document.getElementById('memory-card-note').textContent = started
-      ? 'Autosave is active. Import is disabled while the game is running; export remains available.'
-      : 'Import a card before starting the game. Export is available whenever a card exists.';
+    document.getElementById('memory-card-note').textContent = !settings.memoryCardAutosave
+      ? 'Autosave is off. Import and export still work for the current tab.'
+      : started
+        ? 'Autosave is active. Import is disabled while the game is running; export remains available.'
+        : 'Import a card before starting the game. Export is available whenever a card exists.';
   }
 
   async function restoreMemoryCards() {
     Module.FS.mkdirTree('/saves');
+    if (!settings.memoryCardAutosave) {
+      document.getElementById('memory-card-status').textContent =
+        'Memory-card autosave is off. Fresh cards will exist only in this tab.';
+      updateMemoryCardControls();
+      return;
+    }
     let restored = 0;
     try {
       for (let slot = 1; slot <= 2; slot++) {
@@ -975,7 +1257,7 @@
   }
 
   async function syncMemoryCards() {
-    if (!runtimeReady || !started || memoryCardSyncing) return;
+    if (!settings.memoryCardAutosave || !runtimeReady || !started || memoryCardSyncing) return;
     memoryCardSyncing = true;
     let changed = 0;
     try {
@@ -1005,7 +1287,7 @@
   }
 
   function beginMemoryCardAutosave() {
-    if (memoryCardSyncTimer) return;
+    if (!settings.memoryCardAutosave || memoryCardSyncTimer) return;
     setTimeout(syncMemoryCards, 1200);
     memoryCardSyncTimer = setInterval(syncMemoryCards, 3000);
     updateMemoryCardControls();
@@ -1042,7 +1324,7 @@
     Module.FS.mkdirTree('/saves');
     Module.FS.writeFile(memoryCardPaths[slot - 1], bytes);
     memoryCardHashes[slot - 1] = memoryCardHash(bytes);
-    await storeMemoryCard(slot, bytes);
+    if (settings.memoryCardAutosave) await storeMemoryCard(slot, bytes);
     document.getElementById('memory-card-status').textContent =
       `Imported ${file.name} into memory card ${slot}.`;
     updateMemoryCardControls();
@@ -1124,8 +1406,18 @@
     return bytes.byteLength;
   }
   function makeGameConfig(cueName) {
-    const testFastBoot = preloadedTestAssets ? 'true' : 'false';
-    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "1x"\nbios_hle = ${testFastBoot}\nfast_boot = ${testFastBoot}\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = 1\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "4:3"\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
+    const fastBoot = preloadedTestAssets || settings.fastBoot ? 'true' : 'false';
+    const discSpeed = settings.fastLoads ? '2x' : '1x';
+    const lowLatencyInput = settings.lowLatencyInput ? 'true' : 'false';
+    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "${discSpeed}"\nbios_hle = ${fastBoot}\nfast_boot = ${fastBoot}\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = 1\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "4:3"\nlow_latency_input = ${lowLatencyInput}\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
+  }
+
+  function finishGameLaunch() {
+    pauseButton.disabled = false;
+    manualPaused = false;
+    focusPaused = settings.pauseOnBlur && document.visibilityState === 'hidden';
+    applyPauseState();
+    beginMemoryCardAutosave();
   }
 
   startButton.addEventListener('click', async () => {
@@ -1148,7 +1440,7 @@
           '--renderer', 'software',
           '--no-launcher'
         ]);
-        beginMemoryCardAutosave();
+        finishGameLaunch();
         setStatus('Running — click the canvas for audio and controls.');
         return;
       }
@@ -1183,7 +1475,7 @@
           '--renderer', 'software',
           '--no-launcher'
         ]);
-        beginMemoryCardAutosave();
+        finishGameLaunch();
         setStatus('Running — tap the canvas for audio and controls.');
         return;
       }
@@ -1209,10 +1501,13 @@
         '--renderer', 'software',
         '--no-launcher'
       ]);
-      beginMemoryCardAutosave();
+      finishGameLaunch();
       setStatus('Running — click the canvas for audio and controls.');
     } catch (error) {
       started = false;
+      pauseButton.disabled = true;
+      manualPaused = false;
+      focusPaused = false;
       setRunning(false);
       log(error?.stack || String(error));
       setStatus('Start failed — see the log.');

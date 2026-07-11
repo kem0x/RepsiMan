@@ -15,6 +15,8 @@ supply legally obtained copies of the required assets yourself.
 - Browser/WebAssembly build with persistent keyboard remapping, controller
   detection, and SDL gamepad support
 - Automatic browser memory-card persistence with raw card import/export
+- Persistent Original, Enhanced, and Custom QoL settings, including optional
+  fast boot, 2x CD loading, low-latency input, pause, and output filtering
 - Bring-your-own BIOS and CUE/BIN files in the browser
 
 Android, widescreen, higher frame rates, and additional quality-of-life
@@ -68,6 +70,12 @@ the COOP/COEP headers supplied by `web/serve.py`; opening the HTML directly will
 not work. The **Controls** panel remaps Player 1 keyboard input, saves it in the
 browser, and reports connected gamepads. See [web/README.md](web/README.md) for
 browser and LAN testing notes.
+
+The **Settings** panel keeps every QoL change optional. **Original** preserves
+the standard boot and disc timings, **Enhanced** enables the conservative fast
+boot/load and focus-pause options, and changing an individual switch creates a
+**Custom** preset. Launch-time options are clearly marked; pause, output
+filtering, memory-card autosave, and remembered-file permissions change live.
 
 On browsers with the File System Access API, the BIOS and disc picker handles
 are stored locally in IndexedDB. Returning visits restore the files
