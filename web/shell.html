@@ -218,6 +218,82 @@
     .action-button.secondary { border-color: var(--border); background: transparent; color: var(--muted); }
     .action-button.secondary:hover { border-color: var(--border-hover); color: var(--foreground); }
     .action-button:disabled { cursor: not-allowed; opacity: .35; }
+    .controls-dialog {
+      width: min(680px, calc(100% - 24px));
+      max-height: min(760px, calc(100dvh - 24px));
+      overflow: auto;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      background: var(--surface);
+      color: var(--foreground);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .32);
+    }
+    .controls-dialog::backdrop { background: rgba(0, 0, 0, .68); backdrop-filter: blur(3px); }
+    .controls-content { padding: 20px; }
+    .controls-heading { display: flex; align-items: start; justify-content: space-between; gap: 20px; }
+    .controls-heading h2 { font-size: 18px; }
+    .dialog-close {
+      width: 34px;
+      height: 34px;
+      padding: 0;
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 18px;
+    }
+    .dialog-close:hover { border-color: var(--border-hover); color: var(--foreground); }
+    .controller-state {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin: 18px 0;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .controller-state::before {
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      border-radius: 50%;
+      background: var(--subtle);
+      content: "";
+    }
+    .controller-state.connected::before { background: #22c55e; }
+    .controls-copy { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .bindings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .binding-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      min-width: 0;
+      padding: 8px 8px 8px 12px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+    .binding-label { color: var(--muted); font-size: 12px; }
+    .binding-button {
+      min-width: 88px;
+      min-height: 32px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface-soft);
+      color: var(--foreground);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 11px;
+    }
+    .binding-button:hover, .binding-button.listening { border-color: var(--border-hover); }
+    .binding-button.listening { color: var(--muted); }
+    .controls-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; }
+    .controls-note { margin: 0; color: var(--subtle); font-size: 10px; line-height: 1.45; }
     #status {
       min-width: 0;
       margin-left: auto;
@@ -283,6 +359,9 @@
       .actions .action-button { flex: 1; }
       body.running .site-header { font-size: 10px; }
       body.running .site-shell { padding: 6px; }
+      .controls-content { padding: 16px; }
+      .bindings-grid { grid-template-columns: 1fr; }
+      .controls-footer { align-items: stretch; flex-direction: column; }
     }
     @media (prefers-reduced-motion: reduce) {
       *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; }
@@ -330,6 +409,7 @@
         </div>
         <div class="actions">
           <button class="action-button" id="start" disabled>Start game</button>
+          <button class="action-button secondary" id="controls" type="button">Controls</button>
           <button class="action-button secondary" id="test-start" type="button" hidden>Test Start input</button>
           <button class="action-button secondary" id="fullscreen" type="button">Fullscreen</button>
         </div>
@@ -341,10 +421,29 @@
     </section>
   </section>
 </main>
+<dialog class="controls-dialog" id="controls-dialog" aria-labelledby="controls-title">
+  <div class="controls-content">
+    <div class="controls-heading">
+      <div>
+        <p class="section-label">Input</p>
+        <h2 id="controls-title">Controls</h2>
+      </div>
+      <button class="dialog-close" id="controls-close" type="button" aria-label="Close controls">×</button>
+    </div>
+    <div class="controller-state" id="controller-state">No controller detected. Connect one and press a button.</div>
+    <p class="controls-copy">Select a keyboard binding, then press its new key. Backspace unbinds and Escape cancels. Controllers use the standard layout automatically.</p>
+    <div class="bindings-grid" id="bindings-grid"></div>
+    <div class="controls-footer">
+      <p class="controls-note">Changes are saved in this browser and apply immediately while the game is running.</p>
+      <button class="action-button secondary" id="bindings-reset" type="button">Reset defaults</button>
+    </div>
+  </div>
+</dialog>
 <script>
   const biosInput = document.getElementById('bios');
   const discInput = document.getElementById('disc');
   const startButton = document.getElementById('start');
+  const controlsButton = document.getElementById('controls');
   const testStartButton = document.getElementById('test-start');
   const statusNode = document.getElementById('status');
   const logNode = document.getElementById('log');
@@ -356,6 +455,158 @@
   let runtimeReady = false;
   let started = false;
   let aborted = false;
+
+  const bindingDefs = [
+    ['up', 'D-pad up', 'ArrowUp'], ['down', 'D-pad down', 'ArrowDown'],
+    ['left', 'D-pad left', 'ArrowLeft'], ['right', 'D-pad right', 'ArrowRight'],
+    ['cross', 'Cross', 'KeyX'], ['circle', 'Circle', 'KeyS'],
+    ['square', 'Square', 'KeyZ'], ['triangle', 'Triangle', 'KeyA'],
+    ['l1', 'L1', 'KeyQ'], ['r1', 'R1', 'KeyW'],
+    ['l2', 'L2', 'KeyE'], ['r2', 'R2', 'KeyR'],
+    ['l3', 'L3', 'KeyT'], ['r3', 'R3', 'KeyY'],
+    ['start', 'Start', 'Enter'], ['select', 'Select', 'ShiftRight']
+  ];
+  const bindingsKey = 'repsiman-keybinds-v1';
+  const defaultBindings = Object.fromEntries(bindingDefs.map(([name, , code]) => [name, code]));
+  let bindings = { ...defaultBindings };
+  try {
+    const savedBindings = JSON.parse(localStorage.getItem(bindingsKey) || '{}');
+    for (const [name] of bindingDefs)
+      if (typeof savedBindings[name] === 'string' || savedBindings[name] === null)
+        bindings[name] = savedBindings[name];
+  } catch (_) {}
+  let listeningBinding = null;
+
+  const specialKeys = {
+    Enter: ['Return', 40, 'Enter'], Escape: ['Escape', 41, 'Esc'],
+    Backspace: ['Backspace', 42, 'Backspace'], Tab: ['Tab', 43, 'Tab'],
+    Space: ['Space', 44, 'Space'], Minus: ['-', 45, '-'], Equal: ['=', 46, '='],
+    BracketLeft: ['[', 47, '['], BracketRight: [']', 48, ']'],
+    Backslash: ['Backslash', 49, '\\'], Semicolon: [';', 51, ';'], Quote: ["'", 52, "'"],
+    Backquote: ['`', 53, '`'], Comma: [',', 54, ','], Period: ['.', 55, '.'], Slash: ['/', 56, '/'],
+    CapsLock: ['CapsLock', 57, 'Caps Lock'], PrintScreen: ['PrintScreen', 70, 'Print Screen'],
+    ScrollLock: ['ScrollLock', 71, 'Scroll Lock'], Pause: ['Pause', 72, 'Pause'],
+    Insert: ['Insert', 73, 'Insert'], Home: ['Home', 74, 'Home'], PageUp: ['PageUp', 75, 'Page Up'],
+    Delete: ['Delete', 76, 'Delete'], End: ['End', 77, 'End'], PageDown: ['PageDown', 78, 'Page Down'],
+    ArrowRight: ['Right', 79, '→'], ArrowLeft: ['Left', 80, '←'],
+    ArrowDown: ['Down', 81, '↓'], ArrowUp: ['Up', 82, '↑'],
+    ControlLeft: ['Left Ctrl', 224, 'Left Ctrl'], ShiftLeft: ['Left Shift', 225, 'Left Shift'],
+    AltLeft: ['Left Alt', 226, 'Left Alt'], MetaLeft: ['Left GUI', 227, 'Left Meta'],
+    ControlRight: ['Right Ctrl', 228, 'Right Ctrl'], ShiftRight: ['Right Shift', 229, 'Right Shift'],
+    AltRight: ['Right Alt', 230, 'Right Alt'], MetaRight: ['Right GUI', 231, 'Right Meta']
+  };
+
+  function keyDescriptor(code) {
+    if (!code) return ['None', 0, 'Unbound'];
+    if (specialKeys[code]) return specialKeys[code];
+    if (/^Key[A-Z]$/.test(code)) {
+      const letter = code.slice(3);
+      return [letter, 4 + letter.charCodeAt(0) - 65, letter];
+    }
+    if (/^Digit[0-9]$/.test(code)) {
+      const digit = Number(code.slice(5));
+      return [String(digit), digit === 0 ? 39 : 29 + digit, String(digit)];
+    }
+    if (/^F(?:[1-9]|1[0-2])$/.test(code)) {
+      const number = Number(code.slice(1));
+      return [code, 57 + number, code];
+    }
+    return null;
+  }
+
+  function persistBindings() {
+    localStorage.setItem(bindingsKey, JSON.stringify(bindings));
+  }
+
+  function renderBindings() {
+    const grid = document.getElementById('bindings-grid');
+    grid.replaceChildren(...bindingDefs.map(([name, label]) => {
+      const row = document.createElement('div');
+      row.className = 'binding-row';
+      const text = document.createElement('span');
+      text.className = 'binding-label';
+      text.textContent = label;
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = `binding-button${listeningBinding === name ? ' listening' : ''}`;
+      button.dataset.binding = name;
+      button.textContent = listeningBinding === name ? 'Press a key…' : (keyDescriptor(bindings[name])?.[2] || bindings[name]);
+      button.addEventListener('click', () => { listeningBinding = name; renderBindings(); });
+      row.append(text, button);
+      return row;
+    }));
+  }
+
+  function applyLiveBinding(name) {
+    if (!started || typeof Module._psx_web_set_keybind !== 'function') return;
+    const index = bindingDefs.findIndex(([binding]) => binding === name);
+    const descriptor = keyDescriptor(bindings[name]);
+    if (index >= 0 && descriptor) Module._psx_web_set_keybind(index, descriptor[1]);
+  }
+
+  function keybindsIni() {
+    const lines = [
+      '# RepsiMan browser keyboard bindings.', '[player1]',
+      ...bindingDefs.map(([name]) => `${name} = ${keyDescriptor(bindings[name])?.[0] || 'None'}`),
+      `ls_up = ${keyDescriptor(bindings.up)?.[0] || 'None'}`,
+      `ls_down = ${keyDescriptor(bindings.down)?.[0] || 'None'}`,
+      `ls_left = ${keyDescriptor(bindings.left)?.[0] || 'None'}`,
+      `ls_right = ${keyDescriptor(bindings.right)?.[0] || 'None'}`,
+      'rs_up = None', 'rs_down = None', 'rs_left = None', 'rs_right = None',
+      '', '[player2]',
+      ...['up','down','left','right','cross','circle','square','triangle','l1','r1','l2','r2','l3','r3','start','select','ls_up','ls_down','ls_left','ls_right','rs_up','rs_down','rs_left','rs_right'].map(name => `${name} = None`),
+      ''
+    ];
+    return lines.join('\n');
+  }
+
+  function updateControllerState() {
+    const state = document.getElementById('controller-state');
+    const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
+    state.classList.toggle('connected', pads.length > 0);
+    state.textContent = pads.length
+      ? `${pads[0].id} connected. Standard PlayStation layout is active.`
+      : 'No controller detected. Connect one and press a button.';
+  }
+
+  renderBindings();
+  updateControllerState();
+  window.addEventListener('gamepadconnected', updateControllerState);
+  window.addEventListener('gamepaddisconnected', updateControllerState);
+  setInterval(updateControllerState, 1500);
+
+  const controlsDialog = document.getElementById('controls-dialog');
+  controlsButton.addEventListener('click', () => { updateControllerState(); controlsDialog.showModal(); });
+  document.getElementById('controls-close').addEventListener('click', () => controlsDialog.close());
+  controlsDialog.addEventListener('click', event => {
+    if (event.target === controlsDialog) controlsDialog.close();
+  });
+  controlsDialog.addEventListener('close', () => { listeningBinding = null; renderBindings(); canvas.focus(); });
+  document.getElementById('bindings-reset').addEventListener('click', () => {
+    bindings = { ...defaultBindings };
+    persistBindings();
+    for (const [name] of bindingDefs) applyLiveBinding(name);
+    listeningBinding = null;
+    renderBindings();
+  });
+  document.addEventListener('keydown', event => {
+    if (!controlsDialog.open || !listeningBinding) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (event.code === 'Escape') {
+      listeningBinding = null;
+      renderBindings();
+      return;
+    }
+    const nextCode = event.code === 'Backspace' || event.code === 'Delete' ? null : event.code;
+    if (nextCode && !keyDescriptor(nextCode)) return;
+    const changed = listeningBinding;
+    bindings[changed] = nextCode;
+    persistBindings();
+    listeningBinding = null;
+    applyLiveBinding(changed);
+    renderBindings();
+  }, true);
 
   function syncThemeToggle() {
     const dark = document.documentElement.dataset.theme === 'dark';
@@ -465,6 +716,7 @@
       updateStart();
       setRunning(true);
       Module.FS.mkdirTree('/saves');
+      Module.FS.writeFile('/keybinds.ini', keybindsIni());
       if (preloadedTestAssets) {
         const cueName = 'Pepsiman (Japan).cue';
         Module.FS.writeFile('/game.toml', makeGameConfig(cueName));

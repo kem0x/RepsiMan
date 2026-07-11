@@ -26,6 +26,9 @@ python3 web/serve.py
 
 Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Select the 512 KiB PS1
 BIOS, then select the CUE and every BIN track together. Press **Start game**.
+The **Controls** panel supports persistent Player 1 keyboard remapping before
+or during play and reports any browser-visible controller. Standard gamepads
+use the normal south/east/west/north PlayStation face-button layout.
 
 The custom server is required: browser pthreads need the COOP/COEP headers it
 adds. Opening the HTML file directly with `file://` will not work.
@@ -73,5 +76,5 @@ load. Keep it on a trusted private network and stop the server after testing.
 - Memory cards currently live in temporary MEMFS and are lost on reload.
 - Presentation is the faithful 4:3 software path. WebGL, widescreen, and higher
   internal resolutions are later enhancements.
-- Keyboard input is available. SDL's browser gamepad path is compiled in, but
-  individual controller models still need hands-on mapping tests.
+- Keyboard remapping and SDL's browser gamepad path are available. Individual
+  controller models still need hands-on mapping tests.

@@ -12,11 +12,12 @@ supply legally obtained copies of the required assets yourself.
 ## Current targets
 
 - Native macOS build
-- Browser/WebAssembly build with keyboard and SDL gamepad support
+- Browser/WebAssembly build with persistent keyboard remapping, controller
+  detection, and SDL gamepad support
 - Bring-your-own BIOS and CUE/BIN files in the browser
 
-Android, widescreen, higher frame rates, control remapping, and other
-quality-of-life features are planned, not yet supported release targets.
+Android, widescreen, higher frame rates, and additional quality-of-life
+features are planned, not yet supported release targets.
 
 ## Source setup
 
@@ -63,7 +64,9 @@ python3 web/serve.py
 
 Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Browser threads require
 the COOP/COEP headers supplied by `web/serve.py`; opening the HTML directly will
-not work. See [web/README.md](web/README.md) for browser and LAN testing notes.
+not work. The **Controls** panel remaps Player 1 keyboard input, saves it in the
+browser, and reports connected gamepads. See [web/README.md](web/README.md) for
+browser and LAN testing notes.
 
 To assemble the asset-free Cloudflare Pages package after building:
 
