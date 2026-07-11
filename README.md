@@ -22,10 +22,12 @@ supply legally obtained copies of the required assets yourself.
 - Automatic browser memory-card persistence with raw card import/export
 - Persistent Original, Enhanced, and Custom QoL settings, including optional
   fast boot, 2x CD loading, low-latency input, pause, and output filtering
+- Experimental opt-in 16:9 presentation with 4:3 FMV pillarboxing
 - Bring-your-own BIOS and CUE/BIN files in the browser
 
-Android, widescreen, higher frame rates, and additional quality-of-life
-features are planned, not yet supported release targets.
+Android, fully validated widescreen gameplay, higher frame rates, and
+additional quality-of-life features are planned, not yet supported release
+targets.
 
 ## Source setup
 
@@ -81,6 +83,9 @@ the standard boot and disc timings, **Enhanced** enables the conservative fast
 boot/load and focus-pause options, and changing an individual switch creates a
 **Custom** preset. Launch-time options are clearly marked; pause, output
 filtering, memory-card autosave, and remembered-file permissions change live.
+The **Widescreen** switch enables the framework's experimental 16:9 world-view
+path on the next launch. It is deliberately excluded from the Enhanced preset
+until every level has been checked for culling, HUD, and world-edge artifacts.
 
 On browsers with the File System Access API, the BIOS and disc picker handles
 are stored locally in IndexedDB. Returning visits restore the files

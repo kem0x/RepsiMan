@@ -377,6 +377,7 @@
       text-align: right;
     }
     .screen { display: grid; aspect-ratio: 4 / 3; min-height: 0; overflow: hidden; place-items: center; background: #000; }
+    html.widescreen-output .screen { aspect-ratio: 16 / 9; }
     canvas { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; outline: none; }
     html.smooth-output canvas { image-rendering: auto; }
     canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--foreground); }
@@ -461,7 +462,7 @@
       <div class="signals" aria-label="Project characteristics">
         <span class="signal">Local files</span>
         <span class="signal">WebAssembly</span>
-        <span class="signal">4:3 output</span>
+        <span class="signal">4:3 / 16:9</span>
       </div>
     </aside>
     <section class="game-card">
@@ -599,6 +600,7 @@
   const memoryCardSize = 128 * 1024;
   let manualPaused = false;
   let focusPaused = false;
+  let launchedWidescreen = false;
 
   const presetValues = {
     original: {
@@ -606,20 +608,23 @@
       fastLoads: false,
       lowLatencyInput: true,
       pauseOnBlur: false,
-      smoothOutput: false
+      smoothOutput: false,
+      widescreen: false
     },
     enhanced: {
       fastBoot: true,
       fastLoads: true,
       lowLatencyInput: true,
       pauseOnBlur: true,
-      smoothOutput: false
+      smoothOutput: false,
+      widescreen: false
     }
   };
   const settingDefs = [
     ['fastBoot', 'Fast boot', 'Skip the PlayStation BIOS shell and start the game directly.', true],
     ['fastLoads', 'Faster CD loading', 'Use a conservative 2× data-read speed while preserving CD audio.', true],
     ['lowLatencyInput', 'Low-latency input', 'Sample controls again immediately before presenting each frame.', true],
+    ['widescreen', 'Widescreen', 'Use the experimental 16:9 world view; FMVs remain pillarboxed at 4:3.', true],
     ['pauseOnBlur', 'Pause when unfocused', 'Freeze the game when this tab is hidden or loses visibility.', false],
     ['smoothOutput', 'Smooth output', 'Use browser filtering instead of crisp nearest-neighbor pixels.', false],
     ['memoryCardAutosave', 'Memory-card autosave', 'Persist both real PS1 memory cards in this browser.', false],
@@ -646,6 +651,11 @@
 
   function persistSettings() {
     localStorage.setItem('repsiman-settings-v1', JSON.stringify(settings));
+  }
+
+  function applyOutputAspect() {
+    const wide = started ? launchedWidescreen : settings.widescreen;
+    document.documentElement.classList.toggle('widescreen-output', wide);
   }
 
   function renderSettings() {
@@ -693,6 +703,7 @@
 
   async function applySettingChange(key) {
     document.documentElement.classList.toggle('smooth-output', settings.smoothOutput);
+    if (key === 'widescreen') applyOutputAspect();
     if (key === 'pauseOnBlur') {
       focusPaused = settings.pauseOnBlur && document.visibilityState === 'hidden';
       applyPauseState();
@@ -740,6 +751,7 @@
   }
 
   document.documentElement.classList.toggle('smooth-output', settings.smoothOutput);
+  applyOutputAspect();
 
   const bindingDefs = [
     ['up', 'D-pad up', 'ArrowUp'], ['down', 'D-pad down', 'ArrowDown'],
@@ -1409,10 +1421,13 @@
     const fastBoot = preloadedTestAssets || settings.fastBoot ? 'true' : 'false';
     const discSpeed = settings.fastLoads ? '2x' : '1x';
     const lowLatencyInput = settings.lowLatencyInput ? 'true' : 'false';
-    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "${discSpeed}"\nbios_hle = ${fastBoot}\nfast_boot = ${fastBoot}\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = 1\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "4:3"\nlow_latency_input = ${lowLatencyInput}\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
+    const aspectRatio = settings.widescreen ? '16:9' : '4:3';
+    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "${discSpeed}"\nbios_hle = ${fastBoot}\nfast_boot = ${fastBoot}\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = 1\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "${aspectRatio}"\nlow_latency_input = ${lowLatencyInput}\n\n[widescreen]\noffer = true\noffer_ultrawide = false\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
   }
 
   function finishGameLaunch() {
+    launchedWidescreen = settings.widescreen;
+    applyOutputAspect();
     pauseButton.disabled = false;
     manualPaused = false;
     focusPaused = settings.pauseOnBlur && document.visibilityState === 'hidden';

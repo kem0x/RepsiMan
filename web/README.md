@@ -48,6 +48,11 @@ written into the generated runtime configuration when the game starts. The
 toolbar **Pause** button freezes the guest at a frame boundary and resumes it
 without advancing the game in the background.
 
+The optional **Widescreen** switch selects the framework's experimental 16:9
+world-view path while keeping BIOS screens and FMVs at their original 4:3
+aspect. It currently requires visual validation across the whole game and is
+not part of the Enhanced preset.
+
 The custom server is required: browser pthreads need the COOP/COEP headers it
 adds. Opening the HTML file directly with `file://` will not work.
 
@@ -93,7 +98,8 @@ load. Keep it on a trusted private network and stop the server after testing.
   tracks no longer consume the WASM gameplay heap.
 - Memory cards persist per browser origin. Cross-browser or cross-device
   transfer currently requires manual export/import.
-- Presentation is the faithful 4:3 software path. WebGL, widescreen, and higher
-  internal resolutions are later enhancements.
+- Presentation defaults to the faithful 4:3 software path. Experimental 16:9
+  is available; WebGL, higher internal resolutions, and game-wide widescreen
+  validation remain later work.
 - Keyboard remapping and SDL's browser gamepad path are available. Individual
   controller models still need hands-on mapping tests.
