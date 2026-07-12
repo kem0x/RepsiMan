@@ -31,6 +31,12 @@ antialiasing = false
 texture_filtering = "nearest"
 aspect_ratio = "4:3"
 
+[widescreen]
+offer = true
+offer_ultrawide = false
+gte_game_mode = true
+native_wide = false
+
 [controller]
 default_analog = false
 deadzone = 12000

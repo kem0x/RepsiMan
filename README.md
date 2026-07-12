@@ -22,6 +22,8 @@ supply legally obtained copies of the required assets yourself.
 - Automatic browser memory-card persistence with raw card import/export
 - Persistent Original, Enhanced, and Custom QoL settings, including optional
   fast boot, 2x CD loading, low-latency input, pause, and output filtering
+- Experimental browser title branding and an enhanced in-level pause menu with
+  Resume and Return to Title actions; same-level restart remains a visible WIP
 - Experimental opt-in 16:9 presentation with 4:3 FMV pillarboxing
 - Bring-your-own BIOS and CUE/BIN files in the browser
 
@@ -83,6 +85,11 @@ the standard boot and disc timings, **Enhanced** enables the conservative fast
 boot/load and focus-pause options, and changing an individual switch creates a
 **Custom** preset. Launch-time options are clearly marked; pause, output
 filtering, memory-card autosave, and remembered-file permissions change live.
+During a level, Start or the toolbar **Pause** button opens the enhanced pause
+menu. Resume and Return to Title can be selected with keyboard, mouse, or a
+standard gamepad. Restart Level remains disabled until Pepsiman's native
+same-scene reload path is verified. This first iteration is browser-only while
+its game-state detection and reset behavior are validated locally.
 The **Widescreen** switch enables the framework's experimental 16:9 world-view
 path on the next launch. It is deliberately excluded from the Enhanced preset
 until every level has been checked for culling, HUD, and world-edge artifacts.
@@ -107,6 +114,10 @@ npx wrangler pages deploy dist-web --project-name repsiman
 The package script copies only `index.html`, the JavaScript runtime, the WASM
 module, and the required Pages headers. It rejects a missing build and never
 copies `.data`, BIOS, CUE, or BIN files.
+
+The static collection hub lives in `hub/` and deploys independently to the
+`recomps` Pages project. Its game cards link to the separately deployed recomp
+sites, so adding another game does not increase the hub's runtime footprint.
 
 ## Licensing and game assets
 

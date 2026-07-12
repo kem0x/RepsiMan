@@ -45,8 +45,13 @@ loading, low-latency input, focus pause, and output filtering; changing any of
 those switches selects **Custom**. Separate switches control memory-card
 autosave and remembered game-file handles. Options labelled **Next launch** are
 written into the generated runtime configuration when the game starts. The
-toolbar **Pause** button freezes the guest at a frame boundary and resumes it
-without advancing the game in the background.
+toolbar **Pause** button (or Start during a level) opens an enhanced menu and
+freezes the guest at a frame boundary without advancing it in the background.
+The menu supports Resume and Return to Title with keyboard, mouse, or a
+standard gamepad. Restart Level is shown as a disabled WIP until the game's
+native same-scene reload path is identified and verified. It is currently a
+browser-side prototype pending local gameplay validation before the same
+behavior is promoted to native builds.
 
 The optional **Widescreen** switch selects the framework's experimental 16:9
 world-view path while keeping BIOS screens and FMVs at their original 4:3
