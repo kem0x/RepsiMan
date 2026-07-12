@@ -387,7 +387,9 @@
       overflow: hidden;
     }
     :root:fullscreen .screen,
-    :root:-webkit-full-screen .screen {
+    :root:-webkit-full-screen .screen,
+    .screen:fullscreen,
+    .screen:-webkit-full-screen {
       position: fixed;
       inset: 0;
       z-index: 1000;
@@ -412,7 +414,10 @@
       backdrop-filter: blur(4px);
     }
     :root:fullscreen .fullscreen-exit,
-    :root:-webkit-full-screen .fullscreen-exit { display: block; }
+    :root:-webkit-full-screen .fullscreen-exit,
+    .screen:fullscreen .fullscreen-exit,
+    .screen:-webkit-full-screen .fullscreen-exit { display: block; }
+    .screen::backdrop { background: #000; }
     canvas { width: 100%; height: 100%; object-fit: contain; image-rendering: pixelated; outline: none; }
     html.smooth-output canvas { image-rendering: auto; }
     canvas:focus-visible { box-shadow: inset 0 0 0 2px var(--foreground); }
@@ -1856,7 +1861,11 @@
   });
 
   function nativeFullscreenElement() {
-    return document.fullscreenElement || document.webkitFullscreenElement || null;
+    return document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.webkitCurrentFullScreenElement ||
+      (document.webkitIsFullScreen ? screenNode : null) ||
+      null;
   }
 
   function syncFullscreenButton() {
@@ -1877,24 +1886,24 @@
 
   async function toggleFullscreen() {
     if (nativeFullscreenElement()) {
-      const exit = document.exitFullscreen || document.webkitExitFullscreen;
+      const exit = document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.webkitCancelFullScreen;
       if (exit) await Promise.resolve(exit.call(document)).catch(() => {});
     } else {
-      const target = document.documentElement;
-      const request = target.requestFullscreen || target.webkitRequestFullscreen;
-      const enabled = document.fullscreenEnabled !== false ||
-        document.webkitFullscreenEnabled === true;
-      if (!request || !enabled) {
+      let target = screenNode;
+      let request = target.requestFullscreen || target.webkitRequestFullscreen;
+      if (!request) {
+        target = document.documentElement;
+        request = target.requestFullscreen || target.webkitRequestFullscreen;
+      }
+      if (!request) {
         reportFullscreenUnavailable();
         canvas.focus();
         return;
       }
       try {
-        const result = target.requestFullscreen
-          ? target.requestFullscreen({ navigationUI: 'hide' })
-          : target.webkitRequestFullscreen();
-        await Promise.resolve(result);
-        if (!nativeFullscreenElement()) reportFullscreenUnavailable();
+        await Promise.resolve(request.call(target));
       } catch (error) {
         reportFullscreenUnavailable(error);
       }
