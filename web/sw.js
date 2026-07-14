@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'repsiman-shell-v1.0.0-8';
+const SHELL_CACHE = 'repsiman-shell-v1.0.0-9';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
