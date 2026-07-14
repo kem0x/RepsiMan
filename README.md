@@ -8,11 +8,11 @@ The browser/PWA build is the primary release platform. Native builds remain
 useful for framework development and debugging, but they are not maintained as
 v1 product targets across macOS, Windows, and Linux.
 
-`RepsiMan` remains the repository and Cloudflare Pages project name. The game
-is published at [pepsiman.ol.mr](https://pepsiman.ol.mr) and listed on
-the broader [Recomps](https://recomps.ol.mr) collection site, allowing future
-games to keep independent code, releases, browser storage, and compatibility
-notes.
+`RepsiMan` remains the repository name. The Cloudflare Pages project is named
+`pepsiman`, matching [pepsiman.ol.mr](https://pepsiman.ol.mr), and the game is
+listed on the broader [Recomps](https://recomps.ol.mr) collection site, allowing
+future games to keep independent code, releases, browser storage, and
+compatibility notes.
 
 This repository does **not** include a PlayStation BIOS, game disc, extracted
 game executable, generated game code, memory cards, or save states. You must
@@ -131,11 +131,11 @@ To assemble the asset-free Cloudflare Pages package after building:
 
 ```sh
 scripts/package-web.sh
-npx wrangler pages deploy dist-web --project-name repsiman
+npx wrangler pages deploy dist-web --project-name pepsiman
 ```
 
-The Pages project keeps its existing internal `repsiman` name; its public v1
-custom domain is `pepsiman.ol.mr`.
+The Pages project and its public v1 custom domain are `pepsiman` and
+`pepsiman.ol.mr`, respectively.
 
 The package script copies only the public shell, JavaScript runtime, WASM module,
 PWA metadata/icons, social card, and required Pages headers. It rejects a

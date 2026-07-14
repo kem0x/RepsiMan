@@ -51,18 +51,19 @@ files, memory cards, saves, crash dumps, TLS private keys, and local settings.
 - `kem0x/olmr`: the personal website, which remains unchanged by RepsiMan
   releases.
 
-RepsiMan deploys to its own Cloudflare Pages project and custom domain. This
-keeps large WASM updates out of the personal website's Git history and lets
-releases be versioned independently.
+RepsiMan deploys to the `pepsiman` Cloudflare Pages project and custom domain.
+This keeps large WASM updates out of the personal website's Git history and
+lets releases be versioned independently.
 The separate `kem0x/Recomps` project provides the collection directory at
 `recomps.ol.mr`; the v1 game origin is `pepsiman.ol.mr`.
 
 Browser storage is origin-scoped. Memory cards, unlocks, settings, and remembered
 file permissions from the former `repsiman.ol.mr` origin cannot migrate merely
-through a DNS rename. Keep the former origin available long enough for testers
-to export memory cards, and clearly announce that v1 starts fresh storage on the
-new domain. Internal `repsiman-*` storage keys may remain unchanged; renaming
-them would add another unnecessary migration within the new origin.
+through a DNS rename. Keep the former `repsiman` Pages project and origin
+available long enough for testers to export memory cards, and clearly announce
+that v1 starts fresh storage on the new domain. Internal `repsiman-*` storage
+keys may remain unchanged; renaming them would add another unnecessary
+migration within the new origin.
 
 ## Legal review point
 
