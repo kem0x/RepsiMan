@@ -5,6 +5,11 @@ software-rendered framebuffer through an HTML canvas, and sends queued SPU audio
 through Web Audio. It is the primary Pepsiman Recompiled v1 release target. The
 normal build does not contain a BIOS or game disc.
 
+This browser target is powered by
+[PSXRecomp](https://github.com/mstan/psxrecomp). Huge thanks to mstan and the
+framework contributors whose recompiler, runtime, and hardware work make the
+Pepsiman-specific web layer possible.
+
 ## Build
 
 Install/activate Emscripten, then configure a release build without the native

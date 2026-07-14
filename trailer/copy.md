@@ -19,6 +19,10 @@ Play: https://pepsiman.ol.mr
 Source: https://github.com/kem0x/RepsiMan
 More recomp projects: https://recomps.ol.mr
 
+Powered by PSXRecomp: https://github.com/mstan/psxrecomp
+Huge thanks to mstan and every PSXRecomp contributor whose work made this port
+possible.
+
 Bring your own legally obtained PlayStation BIOS and Pepsiman disc files. The
 files stay on your device and are not included with this project.
 
@@ -38,3 +42,6 @@ Bring your own BIOS + disc. Your files stay local.
 https://pepsiman.ol.mr
 
 Source available: https://github.com/kem0x/RepsiMan
+
+Powered by PSXRecomp from mstan + contributors:
+https://github.com/mstan/psxrecomp

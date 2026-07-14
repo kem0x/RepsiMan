@@ -18,6 +18,19 @@ This repository does **not** include a PlayStation BIOS, game disc, extracted
 game executable, generated game code, memory cards, or save states. You must
 supply legally obtained copies of the required assets yourself.
 
+## Powered by PSXRecomp
+
+Pepsiman Recompiled is built on
+[PSXRecomp](https://github.com/mstan/psxrecomp), the framework that makes this
+static recompilation work possible. Huge thanks to mstan and every
+[PSXRecomp contributor](https://github.com/mstan/psxrecomp/graphs/contributors)
+for the recompiler, PlayStation runtime, hardware work, debugging tools, and
+years of engineering this project gets to build on.
+
+This repository and its framework fork provide the Pepsiman-specific WebAssembly
+integration, compatibility fixes, and quality-of-life layer. They would not
+exist without the upstream project.
+
 ## Version 1.0
 
 - WebAssembly browser build and installable offline PWA

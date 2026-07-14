@@ -32,6 +32,20 @@ are not maintained as end-user releases across desktop operating systems.
 
 The distributed package does not include copyrighted game or BIOS assets.
 
+## Framework update
+
+This release is synchronized with PSXRecomp upstream through commit `dde268d`.
+That update brings exact overlay dispatch, transient audio frame catch-up,
+multi-file CUE and release-packaging hardening, independent analog-stick input,
+and full-rate presentation improvements for the native OpenGL backend.
+
+## Credits
+
+This release is powered by [PSXRecomp](https://github.com/mstan/psxrecomp).
+Huge thanks to mstan and every PSXRecomp contributor for the recompiler,
+PlayStation runtime, compatibility research, and debugging infrastructure that
+Pepsiman Recompiled builds upon.
+
 ## Known limitations
 
 - Chromium on macOS is the primary exercised v1 browser configuration.

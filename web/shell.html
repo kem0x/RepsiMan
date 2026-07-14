@@ -146,6 +146,19 @@
       font-size: 14px;
       line-height: 1.7;
     }
+    .framework-credit {
+      max-width: 440px;
+      margin: 14px 0 0;
+      color: var(--subtle);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+    .framework-credit a {
+      color: var(--foreground);
+      text-decoration: underline;
+      text-decoration-color: var(--border-hover);
+      text-underline-offset: 3px;
+    }
     .signals {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
@@ -613,6 +626,7 @@
       <div class="eyebrow"><span class="status-dot"></span>v1.0 · WebAssembly</div>
       <h1>Pepsiman,<br>recompiled.</h1>
       <p class="lede">A WebAssembly-first recompilation that runs directly in your browser, with optional modern quality-of-life features. Bring your own legally obtained PlayStation BIOS and Pepsiman disc files.</p>
+      <p class="framework-credit">Powered by <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>. Huge thanks to mstan and every framework contributor who made this possible.</p>
       <div class="signals" aria-label="Project characteristics">
         <span class="signal">Local files</span>
         <span class="signal">WebAssembly</span>
