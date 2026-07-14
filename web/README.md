@@ -114,12 +114,6 @@ Append `&mute-test-audio` to a private test URL to force SDL's dummy audio
 driver. Use this for automated capture and regression work that must remain
 silent; it is not exposed in the public settings UI.
 
-For reproducible trailer capture, append `&trailer-capture=8`. A private
-**Capture trailer clip** control (or `F9` while the game is running) records only
-the game canvas into a silent WebM buffer; it never records the desktop,
-microphone, or game-file contents. The control is exposed only alongside private
-preloaded or tokenized local assets.
-
 Private test pages also expose held Start and Japanese Confirm/Circle inputs.
 Unlike synthetic browser taps, these hooks remain active across Pepsiman's 30 Hz
 controller sampling window and are suitable for deterministic menu automation.

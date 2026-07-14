@@ -27,8 +27,6 @@
 /.wrangler/
 /web/certs/
 /web/cert-download/
-/trailer/captures/
-/trailer/output/
 /psxrecomp/recompiler/build/
 /psxrecomp/runtime/build/
 bios.cfg

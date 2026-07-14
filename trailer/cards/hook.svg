@@ -1,9 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
-  <rect width="1920" height="1080" fill="#07090d"/>
-  <path d="M1220-240L2100 640V900L960-240Z" fill="#123b7a"/>
-  <path d="M780 1200L2100-120V180L1080 1200Z" fill="#c71f2d"/>
-  <text x="130" y="180" fill="#9eabc3" font-family="SFMono-Regular,Menlo,monospace" font-size="34" letter-spacing="10">RECOMPS PRESENTS</text>
-  <text x="125" y="530" fill="#f7f7f8" font-family="SF Pro Display,Arial,sans-serif" font-size="124" font-weight="800" letter-spacing="-5">THE PS1 CULT CLASSIC.</text>
-  <text x="125" y="680" fill="#f7f7f8" font-family="SF Pro Display,Arial,sans-serif" font-size="124" font-weight="800" letter-spacing="-5">RECOMPILED FOR THE WEB.</text>
-  <rect x="130" y="805" width="620" height="5" fill="#1d4d9f"/><rect x="750" y="805" width="430" height="5" fill="#de2431"/>
-</svg>

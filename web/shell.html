@@ -666,7 +666,6 @@
           <button class="action-button secondary" id="test-start" type="button" hidden>Test Start input</button>
           <button class="action-button secondary" id="test-confirm" type="button" hidden>Test Confirm input</button>
           <button class="action-button secondary" id="test-stage-one" type="button" hidden>Test Stage 1</button>
-          <button class="action-button secondary" id="capture-trailer" type="button" hidden>Capture trailer clip</button>
           <button class="action-button secondary" id="install-app" type="button" hidden>Install app</button>
           <button class="action-button secondary" id="fullscreen" type="button">Fullscreen</button>
         </div>
@@ -782,7 +781,6 @@
   const testStartButton = document.getElementById('test-start');
   const testConfirmButton = document.getElementById('test-confirm');
   const testStageOneButton = document.getElementById('test-stage-one');
-  const captureTrailerButton = document.getElementById('capture-trailer');
   const installAppButton = document.getElementById('install-app');
   const fullscreenButton = document.getElementById('fullscreen');
   const fullscreenExitButton = document.getElementById('fullscreen-exit');
@@ -797,7 +795,6 @@
   const preloadedTestAssets = urlParams.has('preloaded-test-assets');
   const remoteAssetsToken = urlParams.get('remote-assets');
   const muteTestAudio = urlParams.has('mute-test-audio');
-  const trailerCaptureSeconds = Math.max(0, Math.min(20, Number(urlParams.get('trailer-capture')) || 0));
   const uiPreview = urlParams.get('ui-preview');
   let installPrompt = null;
   let runtimeReady = false;
@@ -833,8 +830,6 @@
   let previousGamepadButtons = [];
   let previousGamepadNavDirection = 0;
   let gamepadNavRepeatAt = 0;
-  window.__repsimanTrailerCapture = { state: 'idle' };
-
   const presetValues = {
     original: {
       fastBoot: false,
@@ -2236,68 +2231,11 @@
     testConfirmButton.hidden = false;
     testStageOneButton.hidden = false;
   }
-  if (trailerCaptureSeconds && (preloadedTestAssets || remoteAssetsToken))
-    captureTrailerButton.hidden = false;
   if (remoteAssetsToken) {
     document.body.classList.add('remote-assets');
     document.getElementById('privacy-copy').textContent =
       'Private LAN test — BIOS and disc data will be read from your Mac.';
   }
-
-  async function captureTrailerClip() {
-    if (!started || window.__repsimanTrailerCapture.state === 'recording') return;
-    if (typeof canvas.captureStream !== 'function' || typeof MediaRecorder !== 'function') {
-      setStatus('Trailer capture is unavailable in this browser.');
-      return;
-    }
-    const mimeTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
-    const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
-    const stream = canvas.captureStream(60);
-    const chunks = [];
-    const recorder = new MediaRecorder(stream, {
-      ...(mimeType ? { mimeType } : {}),
-      videoBitsPerSecond: 12_000_000
-    });
-    window.__repsimanTrailerCapture = { state: 'recording' };
-    captureTrailerButton.dataset.captureState = 'recording';
-    delete captureTrailerButton.dataset.captureBase64;
-    captureTrailerButton.disabled = true;
-    setStatus(`Capturing a silent ${trailerCaptureSeconds}-second trailer clip…`);
-    recorder.addEventListener('dataavailable', event => {
-      if (event.data.size) chunks.push(event.data);
-    });
-    recorder.addEventListener('stop', () => {
-      for (const track of stream.getTracks()) track.stop();
-      const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
-      const reader = new FileReader();
-      reader.addEventListener('load', () => {
-        const dataUrl = String(reader.result || '');
-        window.__repsimanTrailerCapture = {
-          state: 'ready',
-          mimeType: blob.type,
-          bytes: blob.size,
-          base64: dataUrl.slice(dataUrl.indexOf(',') + 1)
-        };
-        captureTrailerButton.dataset.captureState = 'ready';
-        captureTrailerButton.dataset.captureMime = blob.type;
-        captureTrailerButton.dataset.captureBytes = String(blob.size);
-        captureTrailerButton.dataset.captureBase64 = window.__repsimanTrailerCapture.base64;
-        captureTrailerButton.disabled = false;
-        setStatus(`Trailer clip ready — ${(blob.size / 1048576).toFixed(1)} MiB captured locally.`);
-      });
-      reader.readAsDataURL(blob);
-    }, { once: true });
-    recorder.start(250);
-    setTimeout(() => recorder.stop(), trailerCaptureSeconds * 1000);
-  }
-
-  captureTrailerButton.addEventListener('click', captureTrailerClip);
-  document.addEventListener('keydown', event => {
-    if (!trailerCaptureSeconds || event.code !== 'F9') return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    captureTrailerClip();
-  }, true);
 
   testStartButton.addEventListener('click', () => {
     if (!started) return;
