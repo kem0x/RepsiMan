@@ -80,48 +80,12 @@ cmake --build build-web -j4
 python3 web/serve.py
 ```
 
-Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Browser threads require
-the COOP/COEP headers supplied by `web/serve.py`; opening the HTML directly will
-not work. The **Controls** panel remaps Player 1 keyboard input, saves it in the
-browser, and reports connected gamepads. See [web/README.md](web/README.md) for
-browser and LAN testing notes.
+Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Do not open the HTML file
+directly; the threaded build needs the headers supplied by `web/serve.py`.
 
-The **Settings** panel keeps every QoL change optional. **Enhanced** is the
-default and enables conservative fast boot/loading, 60 FPS smoothing,
-focus-pause, and widescreen. **Original** restores the standard boot, disc, and
-4:3 presentation behavior; changing an individual switch creates a **Custom**
-preset. Launch-time options are clearly marked;
-pause, 60 FPS smoothing, output filtering, memory-card autosave, and
-remembered-file permissions change live.
-During a level, Start or the toolbar **Pause** button opens the enhanced pause
-menu. Resume, Restart Level, Level Select, and Return to Title can be selected
-with keyboard, mouse, or a standard gamepad. Restart and Level Select use the
-game's native Free Play scene loader, and reached scenes persist in this browser.
-The **60 FPS smoothing** switch inserts a presentation-only midpoint between
-Pepsiman's original 30 FPS gameplay images. The guest simulation, physics,
-timers, and audio remain at their original rate; this is intentionally not a
-game-logic speed unlock. Smoothing adds one display frame of visual latency.
-The **Widescreen** switch enables the framework's experimental 16:9 world-view
-path on the next launch and is part of the Enhanced preset. Original remains
-available for faithful 4:3 presentation.
-The separate **Geometry correction** switch retains the GTE's discarded
-subpixel projection precision and uses it only in the high-resolution visual
-mirror. Native PS1 coordinates, collision, game logic, HUD, and sprites remain
-unchanged; the option is off by default and applies on the next launch.
-The independent **Texture correction** switch carries each GTE projection's
-depth through its exact `SWC2` packet-memory store and uses that provenance for
-perspective-correct UV sampling. Ordering-table submission cannot mix depths
-between objects, and CPU-built UI remains on the original affine path.
-
-On browsers with the File System Access API, the BIOS and disc picker handles
-are stored locally in IndexedDB. Returning visits restore the files
-automatically when permission remains active, or offer one **Reconnect saved
-files** action when the browser asks for permission again. No literal path or
-game-file contents are uploaded.
-
-The browser **Saves** panel automatically preserves both real PlayStation
-memory-card slots in IndexedDB. Raw 128 KiB `.mcd` cards can be imported before
-launch or exported at any time for backups and native/emulator interoperability.
+The browser build includes controller support, remapping, local saves,
+remembered files, widescreen, 60 FPS smoothing, and optional QoL settings. See
+[web/README.md](web/README.md) for detailed browser and LAN testing notes.
 
 To assemble the asset-free Cloudflare Pages package after building:
 
