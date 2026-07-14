@@ -498,14 +498,15 @@
       z-index: 3;
       color: #fff;
       font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-      font-size: clamp(8px, 1.15vw, 16px);
+      font-size: clamp(7px, .95vw, 13px);
       font-style: italic;
       font-weight: 800;
-      letter-spacing: .28em;
+      letter-spacing: .16em;
       line-height: 1;
       pointer-events: none;
       text-shadow: 0 2px 0 #183678, 2px 0 0 #b7272f;
       transform: skewX(-8deg);
+      white-space: nowrap;
     }
     .qol-pause {
       position: absolute;
@@ -674,7 +675,7 @@
       </div>
       <div class="screen">
         <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Pepsiman game screen"></canvas>
-        <div class="recompiled-mark" id="recompiled-mark" hidden>RECOMPILED</div>
+        <div class="recompiled-mark" id="recompiled-mark" hidden>RECOMPILED BY OL.MR</div>
         <button class="fullscreen-exit" id="fullscreen-exit" type="button" aria-label="Exit fullscreen">Exit</button>
         <div class="qol-pause" id="qol-pause" hidden>
           <div class="qol-pause-panel" role="dialog" aria-modal="true" aria-labelledby="qol-pause-title">
