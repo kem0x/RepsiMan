@@ -1,4 +1,4 @@
-const SHELL_CACHE = 'repsiman-shell-v1.0.0-1';
+const SHELL_CACHE = 'repsiman-shell-v1.0.0-2';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
@@ -7,7 +7,8 @@ const SHELL_ASSETS = [
   '/manifest.webmanifest',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
-  '/icons/apple-touch-icon.png'
+  '/icons/apple-touch-icon.png',
+  '/icons/favicon-32.png'
 ];
 
 self.addEventListener('install', event => {

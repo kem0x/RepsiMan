@@ -36,5 +36,6 @@ mkdir -p "$output_dir/icons"
 cp "$root/web/icons/icon-192.png" "$output_dir/icons/icon-192.png"
 cp "$root/web/icons/icon-512.png" "$output_dir/icons/icon-512.png"
 cp "$root/web/icons/apple-touch-icon.png" "$output_dir/icons/apple-touch-icon.png"
+cp "$root/web/icons/favicon-32.png" "$output_dir/icons/favicon-32.png"
 
-echo "Packaged asset-free browser release in $output_dir"
+echo "Packaged game-data-free browser release in $output_dir"

@@ -6,7 +6,7 @@ the player's legally obtained BIOS, disc, and memory-card data local.
 
 ## Highlights
 
-- Asset-free, threaded WebAssembly build and installable offline PWA shell
+- Threaded WebAssembly build and installable offline PWA shell with no BIOS or disc data
 - Enhanced 16:9 presentation enabled by default, with faithful 4:3 available
 - Presentation-only 60 FPS smoothing without speeding up physics, timers, or audio
 - Keyboard remapping and browser-visible standard gamepad support
@@ -30,7 +30,9 @@ are not maintained as end-user releases across desktop operating systems.
 - A legally obtained 512 KiB PlayStation BIOS
 - A legally obtained Pepsiman CUE file and every referenced BIN track
 
-The distributed package does not include copyrighted game or BIOS assets.
+The distributed package uses the Japanese cover art for its application icons,
+but includes no BIOS, disc data, extracted executable, generated game code, or
+save data.
 
 ## Framework update
 

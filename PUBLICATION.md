@@ -38,6 +38,7 @@ og.png
 icons/icon-192.png
 icons/icon-512.png
 icons/apple-touch-icon.png
+icons/favicon-32.png
 ```
 
 Never publish `Pepsiman_Recompiled.data`; private test builds use it to bundle
