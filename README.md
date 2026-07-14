@@ -87,23 +87,32 @@ The browser build includes controller support, remapping, local saves,
 remembered files, widescreen, 60 FPS smoothing, and optional QoL settings. See
 [web/README.md](web/README.md) for detailed browser and LAN testing notes.
 
-To assemble the asset-free Cloudflare Pages package after building:
+## Deploy to Cloudflare Pages
+
+After completing the web build, authenticate Wrangler and create a Pages
+project. Choose your own project name; creation is only needed once:
+
+```sh
+export CF_PAGES_PROJECT="your-project-name"
+npx wrangler login
+npx wrangler pages project create "$CF_PAGES_PROJECT" --production-branch main
+```
+
+Package and deploy the public browser build:
 
 ```sh
 scripts/package-web.sh
-npx wrangler pages deploy dist-web --project-name pepsiman
+npx wrangler pages deploy dist-web --project-name "$CF_PAGES_PROJECT" --branch main
 ```
-
-The Pages project and its public v1 custom domain are `pepsiman` and
-`pepsiman.ol.mr`, respectively.
 
 The package script copies only the public shell, JavaScript runtime, WASM module,
 PWA metadata/icons, social card, and required Pages headers. It rejects a
 missing build and never copies `.data`, BIOS, CUE, or BIN files.
 
-The static collection hub lives in `hub/` and deploys independently to the
-`recomps` Pages project. Its game cards link to the separately deployed recomp
-sites, so adding another game does not increase the hub's runtime footprint.
+Add a custom domain from the Pages project's **Custom domains** settings in the
+Cloudflare dashboard. Keep the generated `_headers` file: its COOP/COEP headers
+are required by the threaded WebAssembly build. Maintainer-specific project and
+domain details are in [PUBLICATION.md](PUBLICATION.md).
 
 ## Licensing and game assets
 
