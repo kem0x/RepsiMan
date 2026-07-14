@@ -3,8 +3,27 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="An experimental native and WebAssembly recompilation of Pepsiman.">
-  <title>Recomps — Pepsiman</title>
+  <meta name="description" content="Play Pepsiman Recompiled in your browser with widescreen, controller support, persistent saves, and optional quality-of-life features.">
+  <meta name="theme-color" content="#0a0a0a">
+  <meta name="application-name" content="Pepsiman Recompiled">
+  <link rel="canonical" href="https://pepsiman.ol.mr/">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Recomps">
+  <meta property="og:title" content="Pepsiman Recompiled v1.0">
+  <meta property="og:description" content="The PS1 cult classic, recompiled for the web. Bring your own BIOS and disc files; they stay local.">
+  <meta property="og:url" content="https://pepsiman.ol.mr/">
+  <meta property="og:image" content="https://pepsiman.ol.mr/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Pepsiman Recompiled v1.0">
+  <meta name="twitter:description" content="The PS1 cult classic, recompiled for the web.">
+  <meta name="twitter:image" content="https://pepsiman.ol.mr/og.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <title>Pepsiman Recompiled v1.0</title>
   <script>
     (() => {
       const saved = localStorage.getItem('theme');
@@ -298,6 +317,39 @@
     .binding-button.listening { color: var(--muted); }
     .controls-footer { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 16px; }
     .controls-note { margin: 0; color: var(--subtle); font-size: 10px; line-height: 1.45; }
+    .levels-summary { margin: 18px 0 14px; }
+    .levels-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .level-stage {
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface-soft);
+    }
+    .level-stage-title {
+      margin: 0 0 9px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+    }
+    .level-scenes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+    .level-button {
+      min-height: 48px;
+      padding: 6px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.25;
+    }
+    .level-button:hover:not(:disabled), .level-button:focus-visible { border-color: var(--border-hover); color: var(--foreground); }
+    .level-button.completed::after { display: block; margin-top: 2px; color: #22c55e; font-size: 9px; content: "Complete"; }
+    .level-button.current { border-color: var(--foreground); color: var(--foreground); }
+    .level-button.current::after { display: block; margin-top: 2px; color: var(--subtle); font-size: 9px; content: "Current"; }
+    .level-button.current.completed::after { content: "Current · Complete"; }
+    .level-button:disabled { cursor: not-allowed; opacity: .34; }
     .save-actions { display: grid; grid-template-columns: minmax(0, 1fr) repeat(2, auto); gap: 8px; margin-top: 16px; }
     .save-slot {
       min-height: 40px;
@@ -393,9 +445,12 @@
       position: fixed;
       inset: 0;
       z-index: 1000;
-      width: 100vw;
-      height: 100vh;
-      height: 100dvh;
+      /* `body.running .screen` is declared later and has greater specificity.
+         Keep its normal `height: auto` from shrinking a real fullscreen
+         element back to the in-page game-card height. */
+      width: 100vw !important;
+      height: 100vh !important;
+      height: 100dvh !important;
       aspect-ratio: auto !important;
     }
     .fullscreen-exit {
@@ -534,6 +589,7 @@
       body.running .site-shell { padding: 6px; }
       .controls-content { padding: 16px; }
       .bindings-grid { grid-template-columns: 1fr; }
+      .levels-grid { grid-template-columns: 1fr; }
       .controls-footer { align-items: stretch; flex-direction: column; }
       .save-actions { grid-template-columns: 1fr; }
     }
@@ -554,13 +610,13 @@
   </header>
   <section class="app-layout">
     <aside class="intro">
-      <div class="eyebrow"><span class="status-dot"></span>Beta · Native PS1</div>
+      <div class="eyebrow"><span class="status-dot"></span>v1.0 · WebAssembly</div>
       <h1>Pepsiman,<br>recompiled.</h1>
-      <p class="lede">An experimental native and WebAssembly recompilation. Bring your own legally obtained PlayStation BIOS and Pepsiman disc files.</p>
+      <p class="lede">A WebAssembly-first recompilation that runs directly in your browser, with optional modern quality-of-life features. Bring your own legally obtained PlayStation BIOS and Pepsiman disc files.</p>
       <div class="signals" aria-label="Project characteristics">
         <span class="signal">Local files</span>
         <span class="signal">WebAssembly</span>
-        <span class="signal">4:3 / 16:9</span>
+        <span class="signal">Controller ready</span>
       </div>
     </aside>
     <section class="game-card">
@@ -589,10 +645,15 @@
           <button class="action-button" id="start" disabled>Start game</button>
           <button class="action-button secondary" id="reconnect-files" type="button" hidden>Reconnect saved files</button>
           <button class="action-button secondary" id="pause" type="button" disabled>Pause</button>
+          <button class="action-button secondary" id="levels" type="button" disabled>Levels</button>
           <button class="action-button secondary" id="saves" type="button">Saves</button>
           <button class="action-button secondary" id="controls" type="button">Controls</button>
           <button class="action-button secondary" id="settings" type="button">Settings</button>
           <button class="action-button secondary" id="test-start" type="button" hidden>Test Start input</button>
+          <button class="action-button secondary" id="test-confirm" type="button" hidden>Test Confirm input</button>
+          <button class="action-button secondary" id="test-stage-one" type="button" hidden>Test Stage 1</button>
+          <button class="action-button secondary" id="capture-trailer" type="button" hidden>Capture trailer clip</button>
+          <button class="action-button secondary" id="install-app" type="button" hidden>Install app</button>
           <button class="action-button secondary" id="fullscreen" type="button">Fullscreen</button>
         </div>
         <pre id="log" aria-live="polite"></pre>
@@ -607,11 +668,11 @@
             <h2 id="qol-pause-title">Paused</h2>
             <div class="qol-pause-actions">
               <button class="qol-pause-action" type="button" data-pause-action="resume">Resume</button>
-              <button class="qol-pause-action" type="button" data-pause-action="restart" disabled title="Same-level reload is still being reverse-engineered">Restart level · WIP</button>
+              <button class="qol-pause-action" type="button" data-pause-action="restart">Restart level</button>
+              <button class="qol-pause-action" type="button" data-pause-action="levels">Level select</button>
               <button class="qol-pause-action" type="button" data-pause-action="title">Return to title</button>
             </div>
             <p class="qol-pause-help">D-pad / left stick to move · Cross / A to select · Circle / B to resume</p>
-            <p class="qol-pause-help">Restart is disabled until the native scene reload is verified.</p>
           </div>
         </div>
       </div>
@@ -646,7 +707,7 @@
       <button class="dialog-close" id="saves-close" type="button" aria-label="Close saves">×</button>
     </div>
     <div class="controller-state connected" id="memory-card-status">Checking this browser for memory cards…</div>
-    <p class="controls-copy">Both PlayStation memory-card slots are saved automatically. Exported cards are raw 128 KiB files compatible with the native port and most emulators.</p>
+    <p class="controls-copy">Both PlayStation memory-card slots are saved automatically. Exported cards are raw 128 KiB files compatible with standard emulator and console save tools.</p>
     <div class="save-actions">
       <select class="save-slot" id="memory-card-slot" aria-label="Memory card slot">
         <option value="1">Memory card 1</option>
@@ -657,6 +718,21 @@
       <input class="fallback-file-input" id="memory-card-file" type="file" accept=".mcd,.mcr,application/octet-stream">
     </div>
     <p class="controls-note" id="memory-card-note">Import a card before starting the game. Export is available at any time.</p>
+  </div>
+</dialog>
+<dialog class="controls-dialog" id="levels-dialog" aria-labelledby="levels-title">
+  <div class="controls-content">
+    <div class="controls-heading">
+      <div>
+        <p class="section-label">Practice</p>
+        <h2 id="levels-title">Level select</h2>
+      </div>
+      <button class="dialog-close" id="levels-close" type="button" aria-label="Close level select">×</button>
+    </div>
+    <div class="controller-state connected levels-summary" id="levels-status">Progress is saved on this device.</div>
+    <p class="controls-copy">Replay any scene you have reached. Finishing a scene unlocks the next one.</p>
+    <div class="levels-grid" id="levels-grid"></div>
+    <p class="controls-note">Level-select progress is separate from Pepsiman's original memory-card save.</p>
   </div>
 </dialog>
 <dialog class="controls-dialog" id="settings-dialog" aria-labelledby="settings-title">
@@ -685,10 +761,15 @@
   const reconnectFilesButton = document.getElementById('reconnect-files');
   const startButton = document.getElementById('start');
   const pauseButton = document.getElementById('pause');
+  const levelsButton = document.getElementById('levels');
   const savesButton = document.getElementById('saves');
   const controlsButton = document.getElementById('controls');
   const settingsButton = document.getElementById('settings');
   const testStartButton = document.getElementById('test-start');
+  const testConfirmButton = document.getElementById('test-confirm');
+  const testStageOneButton = document.getElementById('test-stage-one');
+  const captureTrailerButton = document.getElementById('capture-trailer');
+  const installAppButton = document.getElementById('install-app');
   const fullscreenButton = document.getElementById('fullscreen');
   const fullscreenExitButton = document.getElementById('fullscreen-exit');
   const statusNode = document.getElementById('status');
@@ -701,7 +782,10 @@
   const urlParams = new URLSearchParams(location.search);
   const preloadedTestAssets = urlParams.has('preloaded-test-assets');
   const remoteAssetsToken = urlParams.get('remote-assets');
+  const muteTestAudio = urlParams.has('mute-test-audio');
+  const trailerCaptureSeconds = Math.max(0, Math.min(20, Number(urlParams.get('trailer-capture')) || 0));
   const uiPreview = urlParams.get('ui-preview');
+  let installPrompt = null;
   let runtimeReady = false;
   let started = false;
   let aborted = false;
@@ -714,6 +798,8 @@
   let memoryCardSyncTimer = null;
   let memoryCardSyncing = false;
   let memoryCardLastSaved = null;
+  let progressReady = Promise.resolve();
+  let progressProfile = { schemaVersion: 3, completed: [], unlocked: ['1-1'], updatedAt: 0 };
   const memoryCardHashes = [null, null];
   const memoryCardPaths = ['/saves/card1.mcd', '/saves/card2.mcd'];
   const memoryCardSize = 128 * 1024;
@@ -723,15 +809,24 @@
   let launchedWidescreen = false;
   let currentCddaTrack = 0;
   let gameplaySessionActive = false;
+  let currentLevel = { stage: 1, scene: 1 };
+  let levelLaunchMode = 'linear';
+  let pendingLevelKey = null;
+  let transitionIntent = null;
+  let observedLevelKey = null;
+  let liveLevelKey = null;
+  let atFreePlaySelector = false;
   let previousGamepadButtons = [];
   let previousGamepadNavDirection = 0;
   let gamepadNavRepeatAt = 0;
+  window.__repsimanTrailerCapture = { state: 'idle' };
 
   const presetValues = {
     original: {
       fastBoot: false,
       fastLoads: false,
       lowLatencyInput: true,
+      smooth60: false,
       pauseOnBlur: false,
       smoothOutput: false,
       widescreen: false
@@ -740,23 +835,31 @@
       fastBoot: true,
       fastLoads: true,
       lowLatencyInput: true,
+      smooth60: true,
       pauseOnBlur: true,
       smoothOutput: false,
-      widescreen: false
+      widescreen: true
     }
   };
   const settingDefs = [
     ['fastBoot', 'Fast boot', 'Skip the PlayStation BIOS shell and start the game directly.', true],
     ['fastLoads', 'Faster CD loading', 'Use a conservative 2× data-read speed while preserving CD audio.', true],
     ['lowLatencyInput', 'Low-latency input', 'Sample controls again immediately before presenting each frame.', true],
+    ['smooth60', '60 FPS smoothing', 'Insert a visual midpoint between the original 30 FPS gameplay frames. Timing and audio stay original; adds one display frame of latency.', false],
     ['widescreen', 'Widescreen', 'Use the experimental 16:9 world view; FMVs remain pillarboxed at 4:3.', true],
+    ['geometryCorrection', 'Geometry correction', 'Reduce 3D vertex wobble and polygon seams with subpixel projection.', true],
+    ['textureCorrection', 'Texture correction', 'Reduce affine texture warping with stable perspective-correct quad mapping.', true],
+    ['unlimitedLives', 'Unlimited lives', 'Keep Pepsiman’s remaining lives at 99 during gameplay.', false],
     ['pauseOnBlur', 'Pause when unfocused', 'Freeze the game when this tab is hidden or loses visibility.', false],
     ['smoothOutput', 'Smooth output', 'Use browser filtering instead of crisp nearest-neighbor pixels.', false],
     ['memoryCardAutosave', 'Memory-card autosave', 'Persist both real PS1 memory cards in this browser.', false],
     ['rememberFiles', 'Remember game files', 'Store permission handles so BIOS and disc selections can be restored.', false]
   ];
   const settingsDefaults = {
-    ...presetValues.original,
+    ...presetValues.enhanced,
+    geometryCorrection: false,
+    textureCorrection: false,
+    unlimitedLives: false,
     memoryCardAutosave: true,
     rememberFiles: true
   };
@@ -829,7 +932,11 @@
   async function applySettingChange(key) {
     document.documentElement.classList.toggle('smooth-output', settings.smoothOutput);
     if (key === 'widescreen') applyOutputAspect();
-    if (key === 'pauseOnBlur') {
+    if (key === 'smooth60') {
+      Module?._psx_web_set_smooth_60fps?.(settings.smooth60 ? 1 : 0);
+    } else if (key === 'unlimitedLives') {
+      Module?._psx_web_pepsiman_set_unlimited_lives?.(settings.unlimitedLives ? 1 : 0);
+    } else if (key === 'pauseOnBlur') {
       focusPaused = settings.pauseOnBlur && document.visibilityState === 'hidden';
       applyPauseState();
     } else if (key === 'memoryCardAutosave' && runtimeReady) {
@@ -1044,6 +1151,203 @@
   for (const button of document.querySelectorAll('[data-preset="original"], [data-preset="enhanced"]'))
     button.addEventListener('click', () => applyPreset(button.dataset.preset));
 
+  const levelDefinitions = Array.from({ length: 4 }, (_, stage) =>
+    Array.from({ length: 3 }, (_, scene) => ({ stage: stage + 1, scene: scene + 1 }))).flat();
+  const levelsDialog = document.getElementById('levels-dialog');
+  const levelsGrid = document.getElementById('levels-grid');
+  let levelsReturnToPause = false;
+
+  function levelKey(stage, scene) {
+    return `${stage}-${scene}`;
+  }
+
+  function nextLevelKey(key) {
+    const index = levelDefinitions.findIndex(level => levelKey(level.stage, level.scene) === key);
+    const next = levelDefinitions[index + 1];
+    return next ? levelKey(next.stage, next.scene) : null;
+  }
+
+  function openProgressDatabase() {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) return reject(new Error('IndexedDB unavailable'));
+      const request = indexedDB.open('repsiman-progress', 1);
+      request.onupgradeneeded = () => request.result.createObjectStore('profile');
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error);
+    });
+  }
+
+  async function storeProgressProfile() {
+    progressProfile.updatedAt = Date.now();
+    try {
+      const db = await openProgressDatabase();
+      await new Promise((resolve, reject) => {
+        const request = db.transaction('profile', 'readwrite').objectStore('profile')
+          .put({ ...progressProfile }, 'main');
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+      });
+      db.close();
+    } catch (error) {
+      console.warn('Could not persist level progress:', error);
+      document.getElementById('levels-status').textContent =
+        'Progress storage is unavailable; unlocks will last for this tab only.';
+    }
+  }
+
+  async function restoreProgressProfile() {
+    try {
+      const db = await openProgressDatabase();
+      const stored = await new Promise((resolve, reject) => {
+        const request = db.transaction('profile').objectStore('profile').get('main');
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+      });
+      db.close();
+      const validKeys = new Set(levelDefinitions.map(level => levelKey(level.stage, level.scene)));
+      let completed = [...new Set(stored?.completed || [])].filter(key => validKeys.has(key));
+      let unlocked = [...new Set(['1-1', ...(stored?.unlocked || [])])].filter(key => validKeys.has(key));
+      /* Versions 1/2 inferred scene completion from CD-DA changes. A single
+       * scene changes tracks internally, so every unlock produced by those
+       * versions is unverified and must be discarded. */
+      const repairedInvalidAudioProgress = stored && Number(stored.schemaVersion || 0) < 3;
+      if (repairedInvalidAudioProgress) {
+        completed = [];
+        unlocked = ['1-1'];
+      }
+      progressProfile = {
+        schemaVersion: 3,
+        completed,
+        unlocked,
+        updatedAt: stored?.updatedAt || 0
+      };
+      if (repairedInvalidAudioProgress) void storeProgressProfile();
+    } catch (error) {
+      console.warn('Could not restore level progress:', error);
+    }
+    renderLevelSelect();
+  }
+
+  function markLevelCompleted(key) {
+    if (!levelDefinitions.some(level => levelKey(level.stage, level.scene) === key)) return;
+    if (!progressProfile.completed.includes(key)) progressProfile.completed.push(key);
+    const next = nextLevelKey(key);
+    if (next && !progressProfile.unlocked.includes(next)) progressProfile.unlocked.push(next);
+    renderLevelSelect();
+    void storeProgressProfile();
+  }
+
+  function reconcileCampaignProgress(key) {
+    const targetIndex = levelDefinitions.findIndex(level =>
+      levelKey(level.stage, level.scene) === key);
+    if (targetIndex < 0) return;
+    let changed = false;
+    for (let index = 0; index <= targetIndex; index++) {
+      const reachedKey = levelKey(levelDefinitions[index].stage, levelDefinitions[index].scene);
+      if (!progressProfile.unlocked.includes(reachedKey)) {
+        progressProfile.unlocked.push(reachedKey);
+        changed = true;
+      }
+      if (index < targetIndex && !progressProfile.completed.includes(reachedKey)) {
+        progressProfile.completed.push(reachedKey);
+        changed = true;
+      }
+    }
+    if (!changed) return;
+    renderLevelSelect();
+    void storeProgressProfile();
+  }
+
+  function syncLiveLevelIdentity() {
+    if (!started || !gameplayActive() || transitionIntent || atFreePlaySelector) return;
+    if (typeof Module?._psx_web_pepsiman_get_stage !== 'function' ||
+        typeof Module?._psx_web_pepsiman_get_scene !== 'function') return;
+    const stage = Module._psx_web_pepsiman_get_stage();
+    const scene = Module._psx_web_pepsiman_get_scene();
+    if (stage < 1 || stage > 4 || scene < 1 || scene > 3) return;
+    const key = levelKey(stage, scene);
+    if (key === liveLevelKey) return;
+
+    const previousKey = liveLevelKey;
+    liveLevelKey = key;
+    currentLevel = { stage, scene };
+    screenNode.dataset.level = key;
+    if (levelLaunchMode === 'linear') {
+      if (previousKey && nextLevelKey(previousKey) === key)
+        markLevelCompleted(previousKey);
+      else reconcileCampaignProgress(key);
+    }
+  }
+
+  function renderLevelSelect() {
+    const completed = new Set(progressProfile.completed);
+    const unlocked = new Set(progressProfile.unlocked);
+    levelsGrid.replaceChildren(...Array.from({ length: 4 }, (_, stageIndex) => {
+      const stage = stageIndex + 1;
+      const section = document.createElement('section');
+      section.className = 'level-stage';
+      const title = document.createElement('h3');
+      title.className = 'level-stage-title';
+      title.textContent = `Stage ${stage}`;
+      const scenes = document.createElement('div');
+      scenes.className = 'level-scenes';
+      scenes.append(...Array.from({ length: 3 }, (_, sceneIndex) => {
+        const scene = sceneIndex + 1;
+        const key = levelKey(stage, scene);
+        const button = document.createElement('button');
+        button.className = 'level-button';
+        button.type = 'button';
+        button.dataset.levelKey = key;
+        button.textContent = `Scene ${scene}`;
+        button.disabled = !unlocked.has(key) || !started || (!gameplayActive() && !atFreePlaySelector);
+        button.classList.toggle('completed', completed.has(key));
+        button.classList.toggle('current', currentLevel.stage === stage && currentLevel.scene === scene);
+        button.addEventListener('click', () => launchLevel(stage, scene, 'level-select'));
+        return button;
+      }));
+      section.append(title, scenes);
+      return section;
+    }));
+    const count = completed.size;
+    document.getElementById('levels-status').textContent =
+      `${count} of ${levelDefinitions.length} scenes complete · progress saved on this device.`;
+  }
+
+  function openLevelSelect() {
+    if (!started || (!gameplayActive() && !atFreePlaySelector) || pauseTransitionActive) return;
+    levelsReturnToPause = manualPaused;
+    if (!manualPaused) {
+      sendGameInput(NEUTRAL_WORD, 8);
+      manualPaused = true;
+      applyPauseState();
+      levelsReturnToPause = true;
+    }
+    qolPause.hidden = true;
+    renderLevelSelect();
+    levelsDialog.showModal();
+    requestAnimationFrame(() =>
+      levelsDialog.querySelector('.level-button.current:not(:disabled), .level-button:not(:disabled)')?.focus());
+  }
+
+  document.getElementById('levels-close').addEventListener('click', () => levelsDialog.close());
+  levelsDialog.addEventListener('click', event => {
+    if (event.target === levelsDialog) levelsDialog.close();
+  });
+  levelsDialog.addEventListener('close', () => {
+    if (atFreePlaySelector && manualPaused && !pauseTransitionActive) {
+      void leaveCompletedLevelSelect();
+    } else if (levelsReturnToPause && manualPaused && !pauseTransitionActive) {
+      qolPause.hidden = false;
+      qolPause.querySelector('[data-pause-action="levels"]').focus();
+      capturePauseGamepadState();
+    } else {
+      canvas.focus();
+    }
+    levelsReturnToPause = false;
+  });
+  levelsButton.addEventListener('click', openLevelSelect);
+  progressReady = restoreProgressProfile();
+
   const NEUTRAL_WORD = 0xFFFF;
 
   function gameplayActive() {
@@ -1060,8 +1364,9 @@
 
   function gamepadNavDirection(gamepad, buttons = gamepadButtonStates(gamepad)) {
     const stickY = Number.isFinite(gamepad?.axes?.[1]) ? gamepad.axes[1] : 0;
-    if (buttons[12] || stickY < -.55) return -1;
-    if (buttons[13] || stickY > .55) return 1;
+    const stickX = Number.isFinite(gamepad?.axes?.[0]) ? gamepad.axes[0] : 0;
+    if (buttons[12] || buttons[14] || stickY < -.55 || stickX < -.55) return -1;
+    if (buttons[13] || buttons[15] || stickY > .55 || stickX > .55) return 1;
     return 0;
   }
 
@@ -1114,42 +1419,217 @@
     closeEnhancedPause();
   }
 
-  function restartLevel() {
-    /* Deliberately inert: the published shortcut is actually return-to-title
-     * on SLPS-01762. The disabled button remains visible while the proper
-     * same-scene reload entry point is reverse-engineered. */
+  function waitForGuest(milliseconds) {
+    return new Promise(resolve => setTimeout(resolve, milliseconds));
   }
 
-  function returnToTitle() {
+  function beginPauseTransition(title) {
+    pauseTransitionActive = true;
+    qolPause.hidden = false;
+    qolPause.classList.add('transitioning');
+    document.getElementById('qol-pause-title').textContent = title;
+    for (const button of qolPause.querySelectorAll('[data-pause-action]')) button.disabled = true;
+    manualPaused = false;
+    applyPauseState();
+  }
+
+  function finishPauseTransition() {
+    qolPause.hidden = true;
+    qolPause.classList.remove('transitioning');
+    pauseTransitionActive = false;
+    document.getElementById('qol-pause-title').textContent = 'Paused';
+    for (const button of qolPause.querySelectorAll('[data-pause-action]')) button.disabled = false;
+    renderLevelSelect();
+    canvas.focus();
+  }
+
+  function showCompletedLevelSelect(completedKey) {
+    atFreePlaySelector = true;
+    transitionIntent = 'selector';
+    pendingLevelKey = null;
+    sendGameInput(NEUTRAL_WORD, 8);
+    manualPaused = true;
+    applyPauseState();
+    levelsReturnToPause = false;
+    renderLevelSelect();
+    document.getElementById('levels-status').textContent =
+      `Stage ${completedKey} complete · the next scene is now unlocked.`;
+    if (!levelsDialog.open) levelsDialog.showModal();
+    capturePauseGamepadState();
+    requestAnimationFrame(() =>
+      levelsDialog.querySelector('.level-button.current:not(:disabled), .level-button:not(:disabled)')?.focus());
+  }
+
+  async function leaveCompletedLevelSelect() {
+    if (!atFreePlaySelector || pauseTransitionActive) return;
+    beginPauseTransition('Returning to title…');
+    Module?._psx_web_pepsiman_leave_selector?.();
+    await waitForPepsimanState(inMainMenu, 6000);
+    Module?._psx_web_pepsiman_set_free_play?.(0);
+    atFreePlaySelector = false;
+    levelLaunchMode = 'linear';
+    currentLevel = { stage: 1, scene: 1 };
+    liveLevelKey = null;
+    observedLevelKey = null;
+    gameplaySessionActive = false;
+    transitionIntent = null;
+    finishPauseTransition();
+  }
+
+  async function waitForPepsimanState(predicate, timeout = 12000) {
+    const deadline = performance.now() + timeout;
+    while (performance.now() < deadline) {
+      if (predicate()) return true;
+      await waitForGuest(100);
+    }
+    return false;
+  }
+
+  function inMainMenu() {
+    return typeof Module?._psx_web_pepsiman_is_main_menu === 'function' &&
+      Boolean(Module._psx_web_pepsiman_is_main_menu());
+  }
+
+  function inFreePlaySelector() {
+    return typeof Module?._psx_web_pepsiman_is_free_play_selector === 'function' &&
+      Boolean(Module._psx_web_pepsiman_is_free_play_selector());
+  }
+
+  async function waitForLevelAction(timeout = 30000) {
+    const deadline = performance.now() + timeout;
+    let previousStatus = null;
+    while (performance.now() < deadline) {
+      const status = Module._psx_web_pepsiman_level_action_status();
+      if (status !== previousStatus) {
+        screenNode.dataset.levelAction = String(status);
+        log(`Level action status: ${status}`);
+        previousStatus = status;
+      }
+      if (status === 3 || status < 0) return status;
+      await waitForGuest(100);
+    }
+    return -1;
+  }
+
+  function rejectLevelAction(reason) {
+    screenNode.dataset.levelAction = `blocked:${reason}`;
+    log(`Level action blocked: ${reason}`);
+    setStatus(`Level action unavailable: ${reason}.`);
+  }
+
+  async function launchLevel(stage, scene, intent = 'level-select') {
+    const targetKey = levelKey(stage, scene);
+    log(`Level action requested: ${intent} ${targetKey}`);
+    screenNode.dataset.levelAction = `requested:${intent}:${targetKey}`;
+    if (pauseTransitionActive) {
+      rejectLevelAction('another transition is already running');
+      return;
+    }
+    if (!started) {
+      rejectLevelAction('the game is not running');
+      return;
+    }
+    /* A CD-DA track boundary can briefly make gameplayActive() false while the
+     * host pause/level UI is still valid. The stable authority here is that the
+     * user is in our paused UI or Pepsiman's Free Play selector. */
+    if (!manualPaused && !atFreePlaySelector) {
+      rejectLevelAction('pause the running level first');
+      return;
+    }
+    const required = ['_psx_web_pepsiman_request_level',
+      '_psx_web_pepsiman_level_action_status'];
+    const missing = required.filter(name => typeof Module?.[name] !== 'function');
+    if (missing.length) {
+      rejectLevelAction('the browser has an older cached runtime; reload once');
+      return;
+    }
+    /* Restart is always legal for the scene already being played. Only an
+     * explicit level-select request is constrained by persistent unlocks. */
+    if (intent !== 'restart' && !progressProfile.unlocked.includes(targetKey)) {
+      rejectLevelAction(`Stage ${targetKey} is still locked`);
+      return;
+    }
+
+    transitionIntent = intent;
+    pendingLevelKey = targetKey;
+    const launchingFromSelector = atFreePlaySelector;
+    atFreePlaySelector = false;
+    levelsReturnToPause = false;
+    beginPauseTransition(intent === 'restart' ? 'Restarting level…' : `Loading Stage ${stage}-${scene}…`);
+    if (levelsDialog.open) levelsDialog.close();
+
+    try {
+      const route = launchingFromSelector ? 2 : levelLaunchMode === 'freeplay' ? 1 : 0;
+      if (!Module._psx_web_pepsiman_request_level(stage - 1, scene, route))
+        throw new Error('Another level transition is already running.');
+      if (await waitForLevelAction() !== 3)
+        throw new Error('Pepsiman did not accept the requested level.');
+      currentLevel = { stage, scene };
+      liveLevelKey = targetKey;
+      observedLevelKey = targetKey;
+      levelLaunchMode = 'freeplay';
+      pendingLevelKey = null;
+      transitionIntent = null;
+      screenNode.dataset.levelAction = `complete:${targetKey}`;
+      setStatus(intent === 'restart'
+        ? `Restarted Stage ${targetKey}.`
+        : `Loaded Stage ${targetKey}.`);
+    } catch (error) {
+      transitionIntent = null;
+      pendingLevelKey = null;
+      screenNode.dataset.levelAction = 'failed';
+      log(error?.stack || String(error));
+      setStatus('Level transition failed — see the log.');
+      Module?._psx_web_pepsiman_set_free_play?.(0);
+    } finally {
+      finishPauseTransition();
+    }
+  }
+
+  function restartLevel() {
+    void launchLevel(currentLevel.stage, currentLevel.scene, 'restart');
+  }
+
+  async function returnToTitle() {
     if (pauseTransitionActive) return;
     if (typeof Module?._psx_web_return_to_title !== 'function') return;
-    if (!Module._psx_web_return_to_title()) return;
+
+    transitionIntent = 'title';
+    pendingLevelKey = null;
+    beginPauseTransition('Returning to title…');
+    if (!Module._psx_web_return_to_title()) {
+      transitionIntent = null;
+      finishPauseTransition();
+      return;
+    }
 
     /* Run the guest behind an opaque host transition. Pepsiman briefly enters
      * its original 4:3 PAUSE screen before accepting the title chord; keeping
      * it covered prevents that internal screen from collapsing the visible
      * widescreen layout. */
-    pauseTransitionActive = true;
-    qolPause.classList.add('transitioning');
-    document.getElementById('qol-pause-title').textContent = 'Returning to title…';
-    for (const button of qolPause.querySelectorAll('[data-pause-action]'))
-      button.disabled = true;
-    manualPaused = false;
-    applyPauseState();
-    setTimeout(() => {
-      qolPause.hidden = true;
-      qolPause.classList.remove('transitioning');
-      pauseTransitionActive = false;
-      document.getElementById('qol-pause-title').textContent = 'Paused';
-      const restart = qolPause.querySelector('[data-pause-action="restart"]');
-      for (const button of qolPause.querySelectorAll('[data-pause-action]'))
-        button.disabled = button === restart;
-      canvas.focus();
-    }, 1900);
+    if (levelLaunchMode === 'freeplay' && typeof Module?._psx_web_pepsiman_leave_selector === 'function') {
+      if (!await waitForPepsimanState(inFreePlaySelector)) {
+        transitionIntent = null;
+        finishPauseTransition();
+        return;
+      }
+      Module._psx_web_pepsiman_leave_selector();
+      await waitForPepsimanState(inMainMenu, 6000);
+    } else await waitForPepsimanState(inMainMenu);
+    Module?._psx_web_pepsiman_set_free_play?.(0);
+    levelLaunchMode = 'linear';
+    atFreePlaySelector = false;
+    currentLevel = { stage: 1, scene: 1 };
+    liveLevelKey = null;
+    observedLevelKey = null;
+    gameplaySessionActive = false;
+    transitionIntent = null;
+    finishPauseTransition();
   }
 
   function runPauseAction(action) {
     if (action === 'restart') restartLevel();
+    else if (action === 'levels') openLevelSelect();
     else if (action === 'title') returnToTitle();
     else resumeLevel();
   }
@@ -1163,6 +1643,25 @@
   });
 
   window.addEventListener('keydown', event => {
+    if (levelsDialog.open) {
+      const levels = [...levelsDialog.querySelectorAll('.level-button:not(:disabled)')];
+      const current = Math.max(0, levels.indexOf(document.activeElement));
+      if (['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'].includes(event.code)) {
+        const delta = event.code === 'ArrowUp' || event.code === 'ArrowLeft' ? -1 : 1;
+        levels[(current + delta + levels.length) % levels.length]?.focus();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      } else if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+        levels[current]?.click();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      } else if (event.code === 'Escape') {
+        levelsDialog.close();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+      return;
+    }
     if (!qolPause.hidden) {
       if (pauseTransitionActive) {
         event.preventDefault();
@@ -1189,23 +1688,46 @@
     }
   }, true);
 
+  function observeLevelProgress() {
+    if (levelLaunchMode === 'linear') {
+      /* Campaign completion needs a verified game-state hook. Music tracks are
+       * deliberately ignored: Scene 1 alone uses multiple CD-DA tracks. */
+      return;
+    }
+    if (!transitionIntent && !atFreePlaySelector && observedLevelKey && inFreePlaySelector()) {
+      const completedKey = observedLevelKey;
+      markLevelCompleted(completedKey);
+      showCompletedLevelSelect(completedKey);
+    }
+  }
+
   function pollGameUi() {
     if (started && typeof Module?._psx_web_get_cdda_track === 'function')
       currentCddaTrack = Module._psx_web_get_cdda_track();
     /* Gameplay music identifies the transition into a level. Keep that state
      * sticky through track boundaries and brief CD-DA gaps; title/ending music
      * is the authoritative transition back out. */
+    const wasGameplayActive = gameplaySessionActive;
     if (currentCddaTrack >= 2 && currentCddaTrack <= 6) gameplaySessionActive = true;
     else if (currentCddaTrack === 7 || currentCddaTrack === 8) gameplaySessionActive = false;
+    syncLiveLevelIdentity();
+    observeLevelProgress();
     if (started && typeof Module?._psx_web_consume_pause_request === 'function' &&
         Module._psx_web_consume_pause_request())
       openEnhancedPause();
     screenNode.dataset.cddaTrack = String(currentCddaTrack);
     screenNode.dataset.gameplayActive = gameplaySessionActive ? 'true' : 'false';
+    if (started && typeof Module?._psx_web_pepsiman_get_lives === 'function')
+      screenNode.dataset.lives = String(Module._psx_web_pepsiman_get_lives());
+    if (started && typeof Module?._psx_web_geometry_correction_hits === 'function')
+      screenNode.dataset.geometryHits = String(Module._psx_web_geometry_correction_hits());
+    if (started && typeof Module?._psx_web_texture_correction_hits === 'function')
+      screenNode.dataset.textureHits = String(Module._psx_web_texture_correction_hits());
 
     /* Track 7 is the short title theme; track 8 is the three-minute ending. */
     recompiledMark.hidden = !(started && currentCddaTrack === 7 && qolPause.hidden);
     pauseButton.disabled = !started || (!gameplayActive() && qolPause.hidden);
+    levelsButton.disabled = !started || (!gameplayActive() && !atFreePlaySelector) || pauseTransitionActive;
 
     const gamepad = primaryGamepad();
     const buttons = gamepadButtonStates(gamepad);
@@ -1224,7 +1746,13 @@
     } else {
       gamepadNavRepeatAt = 0;
     }
-    if (!qolPause.hidden) {
+    if (levelsDialog.open) {
+      const levels = [...levelsDialog.querySelectorAll('.level-button:not(:disabled)')];
+      const current = Math.max(0, levels.indexOf(document.activeElement));
+      if (navStep) levels[(current + navStep + levels.length) % levels.length]?.focus();
+      if (pressed(0)) levels[current]?.click();
+      if (pressed(1)) levelsDialog.close();
+    } else if (!qolPause.hidden) {
       if (pauseTransitionActive) {
         previousGamepadButtons = buttons;
         previousGamepadNavDirection = navDirection;
@@ -1689,20 +2217,104 @@
   });
   window.addEventListener('pagehide', syncMemoryCards);
 
-  if (preloadedTestAssets || remoteAssetsToken) testStartButton.hidden = false;
+  if (preloadedTestAssets || remoteAssetsToken) {
+    testStartButton.hidden = false;
+    testConfirmButton.hidden = false;
+    testStageOneButton.hidden = false;
+  }
+  if (trailerCaptureSeconds && (preloadedTestAssets || remoteAssetsToken))
+    captureTrailerButton.hidden = false;
   if (remoteAssetsToken) {
     document.body.classList.add('remote-assets');
     document.getElementById('privacy-copy').textContent =
       'Private LAN test — BIOS and disc data will be read from your Mac.';
   }
 
+  async function captureTrailerClip() {
+    if (!started || window.__repsimanTrailerCapture.state === 'recording') return;
+    if (typeof canvas.captureStream !== 'function' || typeof MediaRecorder !== 'function') {
+      setStatus('Trailer capture is unavailable in this browser.');
+      return;
+    }
+    const mimeTypes = ['video/webm;codecs=vp9', 'video/webm;codecs=vp8', 'video/webm'];
+    const mimeType = mimeTypes.find(type => MediaRecorder.isTypeSupported(type)) || '';
+    const stream = canvas.captureStream(60);
+    const chunks = [];
+    const recorder = new MediaRecorder(stream, {
+      ...(mimeType ? { mimeType } : {}),
+      videoBitsPerSecond: 12_000_000
+    });
+    window.__repsimanTrailerCapture = { state: 'recording' };
+    captureTrailerButton.dataset.captureState = 'recording';
+    delete captureTrailerButton.dataset.captureBase64;
+    captureTrailerButton.disabled = true;
+    setStatus(`Capturing a silent ${trailerCaptureSeconds}-second trailer clip…`);
+    recorder.addEventListener('dataavailable', event => {
+      if (event.data.size) chunks.push(event.data);
+    });
+    recorder.addEventListener('stop', () => {
+      for (const track of stream.getTracks()) track.stop();
+      const blob = new Blob(chunks, { type: recorder.mimeType || 'video/webm' });
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        const dataUrl = String(reader.result || '');
+        window.__repsimanTrailerCapture = {
+          state: 'ready',
+          mimeType: blob.type,
+          bytes: blob.size,
+          base64: dataUrl.slice(dataUrl.indexOf(',') + 1)
+        };
+        captureTrailerButton.dataset.captureState = 'ready';
+        captureTrailerButton.dataset.captureMime = blob.type;
+        captureTrailerButton.dataset.captureBytes = String(blob.size);
+        captureTrailerButton.dataset.captureBase64 = window.__repsimanTrailerCapture.base64;
+        captureTrailerButton.disabled = false;
+        setStatus(`Trailer clip ready — ${(blob.size / 1048576).toFixed(1)} MiB captured locally.`);
+      });
+      reader.readAsDataURL(blob);
+    }, { once: true });
+    recorder.start(250);
+    setTimeout(() => recorder.stop(), trailerCaptureSeconds * 1000);
+  }
+
+  captureTrailerButton.addEventListener('click', captureTrailerClip);
+  document.addEventListener('keydown', event => {
+    if (!trailerCaptureSeconds || event.code !== 'F9') return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    captureTrailerClip();
+  }, true);
+
   testStartButton.addEventListener('click', () => {
-    if (!started || typeof Module._psx_web_test_set_start !== 'function') return;
-    Module._psx_web_test_set_start(1);
-    setTimeout(() => Module._psx_web_test_set_start(0), 1000);
+    if (!started) return;
+    if (typeof Module._psx_web_test_set_start === 'function') {
+      Module._psx_web_test_set_start(1);
+      setTimeout(() => Module._psx_web_test_set_start(0), 1000);
+    } else {
+      /* Remote-asset builds intentionally omit the embedded-test export. Use
+       * the normal frontend input override so this private QA control still
+       * behaves like a real Start press. */
+      sendGameInput(0xFFF7, 30);
+    }
     canvas.focus();
   });
-
+  testConfirmButton.addEventListener('click', () => {
+    if (!started) return;
+    /* SLPS-01762 follows the Japanese convention: Circle confirms. Hold the
+     * active-low pad bit long enough to cross the game's 30 Hz sample window. */
+    sendGameInput(0xDFFF, 30);
+    canvas.focus();
+  });
+  testStageOneButton.addEventListener('click', async () => {
+    if (!started || testStageOneButton.disabled) return;
+    testStageOneButton.disabled = true;
+    /* Exercise the same route used by Restart/Level Select without requiring a
+     * CD-audio-based gameplay detector; missing level music is itself under QA. */
+    manualPaused = true;
+    await launchLevel(1, 1, 'restart');
+    testStageOneButton.disabled = false;
+    canvas.focus();
+  });
   function tomlString(value) {
     return value.replaceAll('\\', '\\\\').replaceAll('"', '\\"');
   }
@@ -1749,19 +2361,33 @@
   }
   function makeGameConfig(cueName) {
     const fastBoot = preloadedTestAssets || settings.fastBoot ? 'true' : 'false';
+    const autoSkipFmv = preloadedTestAssets || remoteAssetsToken ? 'true' : 'false';
     const discSpeed = settings.fastLoads ? '2x' : '1x';
     const lowLatencyInput = settings.lowLatencyInput ? 'true' : 'false';
+    const supersampling = settings.geometryCorrection ? 2 : 1;
     const aspectRatio = settings.widescreen ? '16:9' : '4:3';
-    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "${discSpeed}"\nbios_hle = ${fastBoot}\nfast_boot = ${fastBoot}\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = 1\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "${aspectRatio}"\nlow_latency_input = ${lowLatencyInput}\n\n[widescreen]\noffer = true\noffer_ultrawide = false\ngte_game_mode = true\nnative_wide = false\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
+    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "${discSpeed}"\nbios_hle = ${fastBoot}\nfast_boot = ${fastBoot}\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = ${supersampling}\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "${aspectRatio}"\nlow_latency_input = ${lowLatencyInput}\nauto_skip_fmv = ${autoSkipFmv}\n\n[widescreen]\noffer = true\noffer_ultrawide = false\ngte_game_mode = true\nnative_wide = false\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
   }
 
   function finishGameLaunch() {
     launchedWidescreen = settings.widescreen;
+    currentLevel = { stage: 1, scene: 1 };
+    levelLaunchMode = 'linear';
+    liveLevelKey = null;
+    pendingLevelKey = null;
+    transitionIntent = null;
+    observedLevelKey = null;
+    atFreePlaySelector = false;
     applyOutputAspect();
     pauseButton.disabled = true;
+    levelsButton.disabled = true;
     manualPaused = false;
     focusPaused = settings.pauseOnBlur && document.visibilityState === 'hidden';
     applyPauseState();
+    Module?._psx_web_set_geometry_correction?.(settings.geometryCorrection ? 1 : 0);
+    Module?._psx_web_set_texture_correction?.(settings.textureCorrection ? 1 : 0);
+    Module?._psx_web_set_smooth_60fps?.(settings.smooth60 ? 1 : 0);
+    Module?._psx_web_pepsiman_set_unlimited_lives?.(settings.unlimitedLives ? 1 : 0);
     beginMemoryCardAutosave();
   }
 
@@ -1771,6 +2397,7 @@
       updateStart();
       setRunning(true);
       Module.FS.mkdirTree('/saves');
+      await progressReady;
       await memoryCardsReady;
       Module.FS.writeFile('/keybinds.ini', keybindsIni());
       if (preloadedTestAssets) {
@@ -1920,9 +2547,41 @@
   document.addEventListener('webkitfullscreenerror', event => reportFullscreenUnavailable(event));
   syncFullscreenButton();
 
+  window.addEventListener('beforeinstallprompt', event => {
+    event.preventDefault();
+    installPrompt = event;
+    installAppButton.hidden = false;
+  });
+
+  installAppButton.addEventListener('click', async () => {
+    if (!installPrompt) return;
+    const prompt = installPrompt;
+    installPrompt = null;
+    installAppButton.hidden = true;
+    await prompt.prompt();
+    const choice = await prompt.userChoice;
+    setStatus(choice.outcome === 'accepted'
+      ? 'App installed — it can now launch from this device.'
+      : 'Installation cancelled.');
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installPrompt = null;
+    installAppButton.hidden = true;
+    setStatus('App installed — the runtime is available offline.');
+  });
+
+  if ('serviceWorker' in navigator && !preloadedTestAssets && !remoteAssetsToken) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/sw.js').catch(error =>
+        console.warn('Offline runtime unavailable:', error));
+    });
+  }
+
   var Module = {
     noInitialRun: true,
     canvas,
+    preRun: muteTestAudio ? [() => { ENV.SDL_AUDIODRIVER = 'dummy'; }] : [],
     print: text => log(text),
     printErr: text => log(`ERROR: ${text}`),
     setStatus,

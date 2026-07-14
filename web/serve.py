@@ -114,7 +114,7 @@ def main():
         server.socket = context.wrap_socket(server.socket, server_side=True)
 
     display_host = args.host if args.host not in {"0.0.0.0", "::"} else "<this-mac-ip>"
-    url = f"{scheme}://{display_host}:{args.port}/Pepsiman_Recompiled.html"
+    url = f"{scheme}://{display_host}:{args.port}/"
     if WasmHandler.asset_token:
         url += f"?remote-assets={WasmHandler.asset_token}"
     print(f"Pepsiman Web: {url}", flush=True)

@@ -1,11 +1,15 @@
-# RepsiMan
+# Pepsiman Recompiled
 
-RepsiMan is an experimental native and WebAssembly recompilation project for
-the PlayStation game *Pepsiman*. The current milestone runs the original game
-logic on macOS and in a browser; portability and quality-of-life improvements
-are the next milestones.
+Pepsiman Recompiled is a WebAssembly-first recompilation project for the
+PlayStation game *Pepsiman*. Version 1.0 runs the original game logic directly
+in a modern browser and adds an optional quality-of-life layer around it.
 
-RepsiMan remains the game-specific repository and deployment. It is listed on
+The browser/PWA build is the primary release platform. Native builds remain
+useful for framework development and debugging, but they are not maintained as
+v1 product targets across macOS, Windows, and Linux.
+
+`RepsiMan` remains the repository and Cloudflare Pages project name. The game
+is published at [pepsiman.ol.mr](https://pepsiman.ol.mr) and listed on
 the broader [Recomps](https://recomps.ol.mr) collection site, allowing future
 games to keep independent code, releases, browser storage, and compatibility
 notes.
@@ -14,22 +18,25 @@ This repository does **not** include a PlayStation BIOS, game disc, extracted
 game executable, generated game code, memory cards, or save states. You must
 supply legally obtained copies of the required assets yourself.
 
-## Current targets
+## Version 1.0
 
-- Native macOS build
-- Browser/WebAssembly build with persistent keyboard remapping, controller
-  detection, and SDL gamepad support
+- WebAssembly browser build and installable offline PWA
+- Persistent keyboard remapping, controller detection, and SDL gamepad support
 - Automatic browser memory-card persistence with raw card import/export
 - Persistent Original, Enhanced, and Custom QoL settings, including optional
-  fast boot, 2x CD loading, low-latency input, pause, and output filtering
-- Experimental browser title branding and an enhanced in-level pause menu with
-  Resume and Return to Title actions; same-level restart remains a visible WIP
+  fast boot, 2x CD loading, low-latency input, 60 FPS smoothing, pause, and
+  output filtering
+- Enhanced in-level pause menu with Resume, Restart Level, Level Select, and
+  Return to Title actions, plus persistent scene unlocks
 - Experimental opt-in 16:9 presentation with 4:3 FMV pillarboxing
+- Optional subpixel geometry correction to reduce PS1 vertex wobble and seams
+- Optional perspective texture correction to reduce affine warping and swimming
 - Bring-your-own BIOS and CUE/BIN files in the browser
 
-Android, fully validated widescreen gameplay, higher frame rates, and
-additional quality-of-life features are planned, not yet supported release
-targets.
+The PWA can run in compatible Chromium-based browsers on desktop and Android.
+There is no separate Android APK. Safari, Firefox, individual controller models,
+fully validated widescreen gameplay, and a true higher-rate game-logic mode are
+not v1 release targets.
 
 ## Source setup
 
@@ -50,10 +57,13 @@ cmake --build psxrecomp/recompiler/build
 psxrecomp/recompiler/build/psxrecomp-game --config game.toml
 ```
 
-The exact extraction workflow still needs to be packaged into a clean-room
-setup script before the first public release.
+The exact extraction workflow is not automated yet; the public browser build
+instead asks each player for their own BIOS and disc files locally.
 
-## Native build
+## Developer-only native reference build
+
+This build is useful for runtime debugging. It is best-effort and is not one of
+the maintained v1 distribution targets.
 
 ```sh
 cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Release
@@ -80,19 +90,32 @@ not work. The **Controls** panel remaps Player 1 keyboard input, saves it in the
 browser, and reports connected gamepads. See [web/README.md](web/README.md) for
 browser and LAN testing notes.
 
-The **Settings** panel keeps every QoL change optional. **Original** preserves
-the standard boot and disc timings, **Enhanced** enables the conservative fast
-boot/load and focus-pause options, and changing an individual switch creates a
-**Custom** preset. Launch-time options are clearly marked; pause, output
-filtering, memory-card autosave, and remembered-file permissions change live.
+The **Settings** panel keeps every QoL change optional. **Enhanced** is the
+default and enables conservative fast boot/loading, 60 FPS smoothing,
+focus-pause, and widescreen. **Original** restores the standard boot, disc, and
+4:3 presentation behavior; changing an individual switch creates a **Custom**
+preset. Launch-time options are clearly marked;
+pause, 60 FPS smoothing, output filtering, memory-card autosave, and
+remembered-file permissions change live.
 During a level, Start or the toolbar **Pause** button opens the enhanced pause
-menu. Resume and Return to Title can be selected with keyboard, mouse, or a
-standard gamepad. Restart Level remains disabled until Pepsiman's native
-same-scene reload path is verified. This first iteration is browser-only while
-its game-state detection and reset behavior are validated locally.
+menu. Resume, Restart Level, Level Select, and Return to Title can be selected
+with keyboard, mouse, or a standard gamepad. Restart and Level Select use the
+game's native Free Play scene loader, and reached scenes persist in this browser.
+The **60 FPS smoothing** switch inserts a presentation-only midpoint between
+Pepsiman's original 30 FPS gameplay images. The guest simulation, physics,
+timers, and audio remain at their original rate; this is intentionally not a
+game-logic speed unlock. Smoothing adds one display frame of visual latency.
 The **Widescreen** switch enables the framework's experimental 16:9 world-view
-path on the next launch. It is deliberately excluded from the Enhanced preset
-until every level has been checked for culling, HUD, and world-edge artifacts.
+path on the next launch and is part of the Enhanced preset. Original remains
+available for faithful 4:3 presentation.
+The separate **Geometry correction** switch retains the GTE's discarded
+subpixel projection precision and uses it only in the high-resolution visual
+mirror. Native PS1 coordinates, collision, game logic, HUD, and sprites remain
+unchanged; the option is off by default and applies on the next launch.
+The independent **Texture correction** switch carries each GTE projection's
+depth through its exact `SWC2` packet-memory store and uses that provenance for
+perspective-correct UV sampling. Ordering-table submission cannot mix depths
+between objects, and CPU-built UI remains on the original affine path.
 
 On browsers with the File System Access API, the BIOS and disc picker handles
 are stored locally in IndexedDB. Returning visits restore the files
@@ -111,9 +134,12 @@ scripts/package-web.sh
 npx wrangler pages deploy dist-web --project-name repsiman
 ```
 
-The package script copies only `index.html`, the JavaScript runtime, the WASM
-module, and the required Pages headers. It rejects a missing build and never
-copies `.data`, BIOS, CUE, or BIN files.
+The Pages project keeps its existing internal `repsiman` name; its public v1
+custom domain is `pepsiman.ol.mr`.
+
+The package script copies only the public shell, JavaScript runtime, WASM module,
+PWA metadata/icons, social card, and required Pages headers. It rejects a
+missing build and never copies `.data`, BIOS, CUE, or BIN files.
 
 The static collection hub lives in `hub/` and deploys independently to the
 `recomps` Pages project. Its game cards link to the separately deployed recomp
@@ -124,7 +150,7 @@ sites, so adding another game does not increase the hub's runtime footprint.
 The pinned PSXRecomp framework is licensed under the PolyForm Noncommercial
 License 1.0.0. Because that license restricts commercial use, this project
 should currently be described as **source-available for noncommercial use**, not
-as OSI-approved open-source software. RepsiMan's original files do not yet have
+as OSI-approved open-source software. This repository's original files do not yet have
 an explicit license; no license is granted merely by making the repository
 public.
 

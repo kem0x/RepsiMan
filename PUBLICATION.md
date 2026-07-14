@@ -25,12 +25,19 @@ git -C psxrecomp status --short
 find build-web -maxdepth 1 -type f -print
 ```
 
-The public browser package must contain only:
+The public browser package may contain only:
 
 ```text
-Pepsiman_Recompiled.html
+index.html
 Pepsiman_Recompiled.js
 Pepsiman_Recompiled.wasm
+_headers
+manifest.webmanifest
+sw.js
+og.png
+icons/icon-192.png
+icons/icon-512.png
+icons/apple-touch-icon.png
 ```
 
 Never publish `Pepsiman_Recompiled.data`; private test builds use it to bundle
@@ -48,8 +55,14 @@ RepsiMan deploys to its own Cloudflare Pages project and custom domain. This
 keeps large WASM updates out of the personal website's Git history and lets
 releases be versioned independently.
 The separate `kem0x/Recomps` project provides the collection directory at
-`recomps.ol.mr`; `repsiman.ol.mr` remains the Pepsiman game origin so existing
-IndexedDB memory cards and remembered file permissions continue to work.
+`recomps.ol.mr`; the v1 game origin is `pepsiman.ol.mr`.
+
+Browser storage is origin-scoped. Memory cards, unlocks, settings, and remembered
+file permissions from the former `repsiman.ol.mr` origin cannot migrate merely
+through a DNS rename. Keep the former origin available long enough for testers
+to export memory cards, and clearly announce that v1 starts fresh storage on the
+new domain. Internal `repsiman-*` storage keys may remain unchanged; renaming
+them would add another unnecessary migration within the new origin.
 
 ## Legal review point
 

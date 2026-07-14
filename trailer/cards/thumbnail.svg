@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="720" viewBox="0 0 1280 720">
+  <defs><pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><path d="M0 3.5H4" stroke="#fff" stroke-opacity=".035"/></pattern></defs>
+  <rect width="1280" height="720" fill="#07090d"/>
+  <path d="M760-130L1360 470V680L550-130Z" fill="#123b7a"/>
+  <path d="M510 780L1360-70V140L720 780Z" fill="#c71f2d"/>
+  <rect width="1280" height="720" fill="url(#scan)"/>
+  <text x="82" y="105" fill="#a5b4d1" font-family="SFMono-Regular,Menlo,monospace" font-size="22" letter-spacing="6">VERSION 1.0 · LAUNCH TRAILER</text>
+  <text x="76" y="345" fill="#f7f7f8" font-family="SF Pro Display,Arial,sans-serif" font-size="125" font-weight="800" font-style="italic" letter-spacing="-8">PEPSIMAN</text>
+  <text x="82" y="430" fill="#f7f7f8" font-family="SFMono-Regular,Menlo,monospace" font-size="38" letter-spacing="15">RECOMPILED</text>
+  <text x="82" y="535" fill="#d1d5dd" font-family="SF Pro Display,Arial,sans-serif" font-size="31">The PS1 cult classic, recompiled for the web.</text>
+  <rect x="82" y="604" width="430" height="4" fill="#1d4d9f"/><rect x="512" y="604" width="300" height="4" fill="#de2431"/>
+  <text x="82" y="657" fill="#f7f7f8" font-family="SFMono-Regular,Menlo,monospace" font-size="24" letter-spacing="4">PEPSIMAN.OL.MR</text>
+</svg>
