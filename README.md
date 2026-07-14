@@ -26,7 +26,7 @@ Built with [PSXRecomp](https://github.com/mstan/psxrecomp).
   Return to Title actions, plus persistent scene unlocks
 - Experimental opt-in 16:9 presentation with 4:3 FMV pillarboxing
 - Optional subpixel geometry correction to reduce PS1 vertex wobble and seams
-- Optional perspective texture correction to reduce affine warping and swimming
+- Perspective texture correction enabled by Enhanced to reduce affine warping and swimming
 - Bring-your-own BIOS and CUE/BIN files in the browser
 
 The PWA can run in compatible Chromium-based browsers on desktop and Android.

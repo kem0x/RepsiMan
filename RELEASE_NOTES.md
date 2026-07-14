@@ -14,8 +14,8 @@ the player's legally obtained BIOS, disc, and memory-card data local.
 - Remembered local BIOS and disc permission handles on supported browsers
 - Enhanced pause menu with Resume, Restart Level, Level Select, and Return to Title
 - Persistent per-scene unlock tracking for replay and practice
-- Optional faster boot/loading, unlimited lives, geometry correction, texture
-  correction, focus pause, and output filtering
+- Enhanced texture correction plus optional faster boot/loading, unlimited lives,
+  geometry correction, focus pause, and output filtering
 
 ## Platform policy
 

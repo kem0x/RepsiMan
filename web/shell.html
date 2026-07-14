@@ -839,7 +839,8 @@
       smooth60: false,
       pauseOnBlur: false,
       smoothOutput: false,
-      widescreen: false
+      widescreen: false,
+      textureCorrection: false
     },
     enhanced: {
       fastBoot: true,
@@ -848,7 +849,8 @@
       smooth60: true,
       pauseOnBlur: true,
       smoothOutput: false,
-      widescreen: true
+      widescreen: true,
+      textureCorrection: true
     }
   };
   const settingDefs = [
@@ -868,16 +870,23 @@
   const settingsDefaults = {
     ...presetValues.enhanced,
     geometryCorrection: false,
-    textureCorrection: false,
     unlimitedLives: false,
     memoryCardAutosave: true,
     rememberFiles: true
   };
   let settings = { ...settingsDefaults };
   try {
-    const savedSettings = JSON.parse(localStorage.getItem('repsiman-settings-v1') || '{}');
+    const savedSettingsRaw = localStorage.getItem('repsiman-settings-v1');
+    const savedSettings = JSON.parse(savedSettingsRaw || '{}');
     for (const [key] of settingDefs)
       if (typeof savedSettings[key] === 'boolean') settings[key] = savedSettings[key];
+    if (savedSettingsRaw && Number(savedSettings.schemaVersion || 1) < 2) {
+      const wasLegacyEnhanced = Object.entries(presetValues.enhanced)
+        .filter(([key]) => key !== 'textureCorrection')
+        .every(([key, value]) => savedSettings[key] === value);
+      if (wasLegacyEnhanced) settings.textureCorrection = true;
+      localStorage.setItem('repsiman-settings-v1', JSON.stringify({ ...settings, schemaVersion: 2 }));
+    }
   } catch (_) {}
 
   function activePreset() {
@@ -888,7 +897,7 @@
   }
 
   function persistSettings() {
-    localStorage.setItem('repsiman-settings-v1', JSON.stringify(settings));
+    localStorage.setItem('repsiman-settings-v1', JSON.stringify({ ...settings, schemaVersion: 2 }));
   }
 
   function applyOutputAspect() {

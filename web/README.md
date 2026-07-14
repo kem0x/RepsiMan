@@ -148,9 +148,10 @@ load. Keep it on a trusted private network and stop the server after testing.
   transfer currently requires manual export/import.
 - Level-select unlocks are device-local browser data and currently have no
   import/export format.
-- Enhanced defaults to the experimental 16:9 software path; Original restores
-  faithful 4:3. Optional geometry and texture correction are available; WebGL,
-  more internal scale choices, and game-wide visual validation remain later work.
+- Enhanced defaults to the experimental 16:9 software path and texture
+  correction; Original restores faithful 4:3 and affine texture mapping.
+  Geometry correction remains optional; WebGL, more internal scale choices,
+  and game-wide visual validation remain later work.
 - Keyboard remapping and SDL's browser gamepad path are available. Individual
   controller models still need hands-on mapping tests.
 
