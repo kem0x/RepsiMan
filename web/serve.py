@@ -18,6 +18,7 @@ class WasmHandler(SimpleHTTPRequestHandler):
         self.send_header("Cross-Origin-Opener-Policy", "same-origin")
         self.send_header("Cross-Origin-Embedder-Policy", "require-corp")
         self.send_header("Cross-Origin-Resource-Policy", "same-origin")
+        self.send_header("Permissions-Policy", "gamepad=(self), cross-origin-isolated=(self), fullscreen=(self)")
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 

@@ -419,17 +419,21 @@
       text-align: right;
     }
     .screen { position: relative; display: none; aspect-ratio: 4 / 3; min-height: 0; overflow: hidden; place-items: center; background: #000; }
-    .start-gate {
+    .perf-hud {
       position: absolute;
-      inset: 0;
-      z-index: 6;
-      display: grid;
-      place-items: center;
-      background: #000;
+      top: 10px;
+      left: 10px;
+      z-index: 4;
+      margin: 0;
+      padding: 8px 10px;
+      border: 1px solid rgba(255,255,255,.25);
+      border-radius: 5px;
+      background: rgba(0,0,0,.78);
+      color: #fff;
+      font: 11px/1.45 ui-monospace, SFMono-Regular, Menlo, monospace;
       pointer-events: none;
+      white-space: pre;
     }
-    .start-gate[hidden] { display: none; }
-    .start-gate span { min-width: 160px; text-align: center; }
     html.widescreen-output .screen { aspect-ratio: 16 / 9; }
     :root:fullscreen body,
     :root:-webkit-full-screen body {
@@ -656,9 +660,7 @@
       </div>
       <div class="screen">
         <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Pepsiman game screen"></canvas>
-        <div class="start-gate" id="start-gate" hidden>
-          <span class="action-button">Tap to begin</span>
-        </div>
+        <pre class="perf-hud" id="perf-hud" hidden>Waiting for runtime…</pre>
         <div class="recompiled-mark" id="recompiled-mark" hidden>RECOMPILED BY OL.MR</div>
         <button class="fullscreen-exit" id="fullscreen-exit" type="button" aria-label="Exit fullscreen">Exit</button>
         <div class="qol-pause" id="qol-pause" hidden>
@@ -773,7 +775,7 @@
   const logNode = document.getElementById('log');
   const canvas = document.getElementById('canvas');
   const screenNode = canvas.closest('.screen');
-  const startGate = document.getElementById('start-gate');
+  const perfHud = document.getElementById('perf-hud');
   const recompiledMark = document.getElementById('recompiled-mark');
   const qolPause = document.getElementById('qol-pause');
   const themeToggle = document.getElementById('theme-toggle');
@@ -781,6 +783,8 @@
   const preloadedTestAssets = urlParams.has('preloaded-test-assets');
   const remoteAssetsToken = urlParams.get('remote-assets');
   const muteTestAudio = urlParams.has('mute-test-audio');
+  const silentWebAudioTest = urlParams.has('silent-web-audio-test');
+  const perfTestMode = urlParams.has('perf-test');
   const uiPreview = urlParams.get('ui-preview');
   let installPrompt = null;
   let runtimeReady = false;
@@ -797,6 +801,9 @@
   let memoryCardLastSaved = null;
   let progressReady = Promise.resolve();
   let progressProfile = { schemaVersion: 3, completed: [], unlocked: ['1-1'], updatedAt: 0 };
+  let perfRafCount = 0;
+  let perfPrevious = null;
+  let perfLongTaskMs = 0;
   const memoryCardHashes = [null, null];
   const memoryCardPaths = ['/saves/card1.mcd', '/saves/card2.mcd'];
   const memoryCardSize = 128 * 1024;
@@ -845,7 +852,7 @@
     ['smooth60', '60 FPS smoothing', 'Insert a visual midpoint between the original 30 FPS gameplay frames. Timing and audio stay original; adds one display frame of latency.', false],
     ['widescreen', 'Widescreen', 'Use the experimental 16:9 world view; FMVs remain pillarboxed at 4:3.', true],
     ['geometryCorrection', 'Geometry correction', 'Reduce 3D vertex wobble and polygon seams with subpixel projection.', true],
-    ['textureCorrection', 'Texture correction', 'Reduce affine texture warping with stable perspective-correct quad mapping.', true],
+    ['textureCorrection', 'Texture correction', 'Reduce affine texture warping with stable perspective-correct quad mapping.', false],
     ['unlimitedLives', 'Unlimited lives', 'Keep Pepsiman’s remaining lives at 99 during gameplay.', false],
     ['pauseOnBlur', 'Pause when unfocused', 'Freeze the game when this tab is hidden or loses visibility.', false],
     ['smoothOutput', 'Smooth output', 'Use browser filtering instead of crisp nearest-neighbor pixels.', false],
@@ -938,6 +945,8 @@
     if (key === 'widescreen') applyOutputAspect();
     if (key === 'smooth60') {
       Module?._psx_web_set_smooth_60fps?.(settings.smooth60 ? 1 : 0);
+    } else if (key === 'textureCorrection') {
+      Module?._psx_web_set_texture_correction?.(settings.textureCorrection ? 1 : 0);
     } else if (key === 'unlimitedLives') {
       Module?._psx_web_pepsiman_set_unlimited_lives?.(settings.unlimitedLives ? 1 : 0);
     } else if (key === 'pauseOnBlur') {
@@ -1093,13 +1102,38 @@
     return lines.join('\n');
   }
 
+  function browserGamepadState() {
+    const secure = globalThis.isSecureContext;
+    const policy = document.permissionsPolicy || document.featurePolicy;
+    let policyAllowed = null;
+    let error = '';
+    let pads = [];
+    try {
+      if (typeof policy?.allowsFeature === 'function')
+        policyAllowed = policy.allowsFeature('gamepad');
+      if (typeof navigator.getGamepads === 'function')
+        pads = [...navigator.getGamepads()].filter(Boolean);
+    } catch (caught) {
+      error = caught?.name || String(caught);
+    }
+    const pad = pads[0] || null;
+    let diagnostic = 'no device exposed by browser';
+    if (pad) diagnostic = pad.id;
+    else if (!secure) diagnostic = 'blocked: page is not a secure context';
+    else if (typeof navigator.getGamepads !== 'function') diagnostic = 'blocked: Gamepad API unavailable';
+    else if (policyAllowed === false) diagnostic = 'blocked by Permissions Policy';
+    else if (error) diagnostic = `Gamepad API error: ${error}`;
+    else if (!document.hasFocus()) diagnostic = 'no device · page is not focused';
+    return { pad, pads, diagnostic, secure, policyAllowed };
+  }
+
   function updateControllerState() {
     const state = document.getElementById('controller-state');
-    const pads = navigator.getGamepads ? [...navigator.getGamepads()].filter(Boolean) : [];
-    state.classList.toggle('connected', pads.length > 0);
-    state.textContent = pads.length
-      ? `${pads[0].id} connected. Standard PlayStation layout is active.`
-      : 'No controller detected. Connect one and press a button.';
+    const gamepad = browserGamepadState();
+    state.classList.toggle('connected', Boolean(gamepad.pad));
+    state.textContent = gamepad.pad
+      ? `${gamepad.pad.id} connected. Browser input bridge is active.`
+      : `${gamepad.diagnostic}. Put the handheld controls in Gamepad mode, focus this page, then press A.`;
   }
 
   renderBindings();
@@ -1358,12 +1392,49 @@
     return gameplaySessionActive;
   }
 
-  function primaryGamepad() {
-    return [...(navigator.getGamepads?.() || [])].find(Boolean) || null;
+  function primaryGamepad(pads = browserGamepadState().pads) {
+    return pads.find(gamepad => {
+      const button = gamepad.buttons?.some(entry => entry.pressed || entry.value > .5);
+      const axis = gamepad.axes?.some(value => Math.abs(value) > .5);
+      return button || axis;
+    }) || pads[0] || null;
   }
 
   function gamepadButtonStates(gamepad) {
     return gamepad ? gamepad.buttons.map(button => button.pressed || button.value > .5) : [];
+  }
+
+  /* SDL's Emscripten controller layer can enumerate an Edge/XInput pad yet
+   * return neutral input forever on some Windows handhelds. The browser's
+   * Gamepad API still has the real state, so fold every visible standard pad
+   * directly into the active-low PlayStation button word. */
+  function browserGamepadsToPsxWord(gamepads) {
+    let word = NEUTRAL_WORD;
+    const mappings = [
+      [0, 0x4000], /* A -> Cross */
+      [1, 0x2000], /* B -> Circle */
+      [2, 0x8000], /* X -> Square */
+      [3, 0x1000], /* Y -> Triangle */
+      [4, 0x0400], [5, 0x0800], /* L1, R1 */
+      [6, 0x0100], [7, 0x0200], /* L2, R2 */
+      [8, 0x0001], [9, 0x0008], /* Select, Start */
+      [10, 0x0002], [11, 0x0004], /* L3, R3 */
+      [12, 0x0010], [13, 0x0040], /* Up, Down */
+      [14, 0x0080], [15, 0x0020]  /* Left, Right */
+    ];
+    for (const gamepad of gamepads) {
+      for (const [button, mask] of mappings) {
+        const state = gamepad.buttons?.[button];
+        if (state && (state.pressed || state.value > .5)) word &= ~mask;
+      }
+      const x = Number.isFinite(gamepad.axes?.[0]) ? gamepad.axes[0] : 0;
+      const y = Number.isFinite(gamepad.axes?.[1]) ? gamepad.axes[1] : 0;
+      if (x < -.5) word &= ~0x0080;
+      if (x >  .5) word &= ~0x0020;
+      if (y < -.5) word &= ~0x0010;
+      if (y >  .5) word &= ~0x0040;
+    }
+    return word & 0xFFFF;
   }
 
   function gamepadNavDirection(gamepad, buttons = gamepadButtonStates(gamepad)) {
@@ -1375,7 +1446,8 @@
   }
 
   function capturePauseGamepadState() {
-    const gamepad = primaryGamepad();
+    const browserGamepads = browserGamepadState();
+    const gamepad = primaryGamepad(browserGamepads.pads);
     previousGamepadButtons = gamepadButtonStates(gamepad);
     previousGamepadNavDirection = gamepadNavDirection(gamepad, previousGamepadButtons);
     gamepadNavRepeatAt = performance.now() + 350;
@@ -1733,7 +1805,8 @@
     pauseButton.disabled = !started || (!gameplayActive() && qolPause.hidden);
     levelsButton.disabled = !started || (!gameplayActive() && !atFreePlaySelector) || pauseTransitionActive;
 
-    const gamepad = primaryGamepad();
+    const browserGamepads = browserGamepadState();
+    const gamepad = primaryGamepad(browserGamepads.pads);
     const buttons = gamepadButtonStates(gamepad);
     const pressed = index => buttons[index] && !previousGamepadButtons[index];
     const navDirection = gamepadNavDirection(gamepad, buttons);
@@ -1750,6 +1823,23 @@
     } else {
       gamepadNavRepeatAt = 0;
     }
+
+    /* Feed Edge's live browser state into the guest even when SDL reports the
+     * same controller but never updates its buttons. The host menus own input
+     * while open. During gameplay Start opens our enhanced pause menu and is
+     * deliberately hidden from Pepsiman's original PAUSED screen. */
+    if (started && browserGamepads.pads.length &&
+        typeof Module?._psx_web_set_input_override === 'function') {
+      let word = browserGamepadsToPsxWord(browserGamepads.pads);
+      if (gameplayActive()) word |= 0x0008;
+      if (levelsDialog.open || !qolPause.hidden || pauseTransitionActive)
+        word = NEUTRAL_WORD;
+      Module._psx_web_set_input_override(word, 2);
+      screenNode.dataset.gamepadBridge = 'active';
+    } else {
+      screenNode.dataset.gamepadBridge = 'inactive';
+    }
+
     if (levelsDialog.open) {
       const levels = [...levelsDialog.querySelectorAll('.level-button:not(:disabled)')];
       const current = Math.max(0, levels.indexOf(document.activeElement));
@@ -1769,6 +1859,8 @@
         actions[(current + navStep + actions.length) % actions.length].focus();
       if (pressed(0)) actions[current].click();
       if (pressed(1) || pressed(9)) runPauseAction('resume');
+    } else if (gameplayActive() && pressed(9)) {
+      openEnhancedPause();
     }
     previousGamepadButtons = buttons;
     previousGamepadNavDirection = navDirection;
@@ -1819,6 +1911,88 @@
     // Emscripten schedules an empty status after initialization. Do not let it
     // erase our useful Ready/Running state.
     if (text || !runtimeReady) statusNode.textContent = text;
+  }
+
+  function perfRafTick() {
+    perfRafCount++;
+    requestAnimationFrame(perfRafTick);
+  }
+
+  function updatePerfHud() {
+    if (!perfTestMode) return;
+    const now = performance.now();
+    const vblanks = Number(Module?._psx_web_perf_vblanks?.() || 0);
+    const waitUs = Number(Module?._psx_web_perf_pacer_wait_us?.() || 0);
+    const presentUs = Number(Module?._psx_web_perf_present_us?.() || 0);
+    const audio = Module?.psxWebAudio;
+    const audioLeadMs = audio?.context
+      ? Math.max(0, (audio.nextTime - audio.context.currentTime) * 1000)
+      : 0;
+    const audioState = audio?.context?.state || 'unavailable';
+    const underruns = Number(audio?.underruns || 0);
+    const bridgeDrops = Number(audio?.bridgeDrops || 0) +
+      Number(Module?._psx_web_audio_async_drop_count?.() || 0);
+    const platform = navigator.userAgentData?.platform || navigator.platform || 'unknown';
+    const track = Number(Module?._psx_web_get_cdda_track?.() || 0);
+    const mainMenu = Boolean(Module?._psx_web_pepsiman_is_main_menu?.());
+    const stage = Number(Module?._psx_web_pepsiman_get_stage?.() || 0);
+    const scene = Number(Module?._psx_web_pepsiman_get_scene?.() || 0);
+    const diagnosticGamepad = browserGamepadState();
+    const diagnosticPad = diagnosticGamepad.pad;
+
+    if (!perfPrevious) {
+      perfPrevious = { now, vblanks, waitUs, presentUs, raf: perfRafCount, underruns, bridgeDrops };
+      perfHud.textContent = `${platform} · browser CPU hint ${navigator.hardwareConcurrency || '?'}\nCollecting one-second sample…`;
+      return;
+    }
+
+    const elapsed = Math.max(1, now - perfPrevious.now);
+    const seconds = elapsed / 1000;
+    const simHz = (vblanks - perfPrevious.vblanks) / seconds;
+    const displayHz = (perfRafCount - perfPrevious.raf) / seconds;
+    const idleMsPerSecond = ((waitUs - perfPrevious.waitUs) / 1000) / seconds;
+    const presentMsPerSecond = ((presentUs - perfPrevious.presentUs) / 1000) / seconds;
+    const newUnderruns = underruns - perfPrevious.underruns;
+    const newBridgeDrops = bridgeDrops - perfPrevious.bridgeDrops;
+    let verdict = 'Stable sample';
+    const intentionallyPaused = manualPaused || focusPaused;
+    if (intentionallyPaused)
+      verdict = 'Paused';
+    else if (started && audioState !== 'running')
+      verdict = 'Audio context suspended';
+    else if (started && simHz < 59.2 && idleMsPerSecond < 25)
+      verdict = 'CPU-limited WASM simulation';
+    else if (newUnderruns > 0 || newBridgeDrops > 0 ||
+             (started && audio?.started && audioLeadMs < 8))
+      verdict = 'Audio queue starvation';
+    else if (displayHz < 50)
+      verdict = 'Browser/display throttling';
+    else if (started && simHz < 58)
+      verdict = 'Frame pacing recovery';
+    else if (perfLongTaskMs > 80)
+      verdict = 'Browser main-thread stalls';
+
+    perfHud.textContent =
+      `${platform} · browser CPU hint ${navigator.hardwareConcurrency || '?'} · ${verdict}\n` +
+      `simulation ${simHz.toFixed(1)} Hz · display ${displayHz.toFixed(1)} Hz\n` +
+      `pacer idle ${idleMsPerSecond.toFixed(0)} ms/s · present ${presentMsPerSecond.toFixed(0)} ms/s · main stalls ${perfLongTaskMs.toFixed(0)} ms/s\n` +
+      `audio ${audioLeadMs.toFixed(0)} ms (${audioState}) · underruns ${underruns} · bridge drops ${bridgeDrops}\n` +
+      `game ${mainMenu ? 'main menu' : stage && scene ? `${stage}-${scene}` : 'transition'} · track ${track} · pacing timer\n` +
+      `controller ${diagnosticPad ? `${diagnosticPad.id.slice(0, 32)} · browser bridge` : diagnosticGamepad.diagnostic}`;
+
+    perfPrevious = { now, vblanks, waitUs, presentUs, raf: perfRafCount, underruns, bridgeDrops };
+    perfLongTaskMs = 0;
+  }
+
+  if (perfTestMode) {
+    perfHud.hidden = false;
+    requestAnimationFrame(perfRafTick);
+    try {
+      new PerformanceObserver(entries => {
+        for (const entry of entries.getEntries()) perfLongTaskMs += entry.duration;
+      }).observe({ type: 'longtask', buffered: true });
+    } catch (_) {}
+    setInterval(updatePerfHud, 1000);
   }
 
   function currentBiosFile() {
@@ -2332,39 +2506,44 @@
     const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext;
     if (!AudioContextClass) return;
     if (!Module.psxWebAudio) {
-      const context = new AudioContextClass();
+      const platform = navigator.userAgentData?.platform || navigator.platform || '';
+      const isWindows = /^Win/.test(platform) || /Windows/.test(navigator.userAgent || '');
+      let context;
+      try {
+        context = new AudioContextClass({ latencyHint: isWindows ? 0.04 : 'interactive' });
+      } catch (_) {
+        context = new AudioContextClass();
+      }
       Module.psxWebAudio = {
         context,
         nextTime: context.currentTime,
-        sources: new Set()
+        sources: new Set(),
+        started: false,
+        underruns: 0
       };
+    }
+    if (silentWebAudioTest && !Module.psxWebAudio.silentGain) {
+      const gain = Module.psxWebAudio.context.createGain();
+      gain.gain.value = 0;
+      gain.connect(Module.psxWebAudio.context.destination);
+      Module.psxWebAudio.silentGain = gain;
+      Module.psxWebAudio.output = gain;
     }
     Module.psxWebAudio.context.resume().catch(() => {});
   }
 
   function launchGame(args) {
     canvas.focus();
+    Module.psxWebAudioLocked = false;
     Module.callMain(args);
     finishGameLaunch();
-    startGate.hidden = false;
-    setStatus('Ready — tap the game screen to begin.');
-  }
-
-  function unlockGameFromGesture() {
-    if (startGate.hidden) return;
-    primeWebAudioFromGesture();
-    Module.SDL2?.audioContext?.resume?.().catch(() => {});
-    Module.psxWebAudio?.context?.resume?.().catch(() => {});
-    startGate.hidden = true;
-    canvas.focus();
     setStatus('Running — gamepad and keyboard controls are active.');
   }
 
-  canvas.addEventListener('pointerdown', unlockGameFromGesture);
-  canvas.addEventListener('touchstart', unlockGameFromGesture, { passive: true });
-  document.addEventListener('keydown', unlockGameFromGesture);
-
   startButton.addEventListener('click', async () => {
+    /* Authorize Web Audio while this trusted click still carries browser user
+     * activation. No samples exist until the local files finish loading. */
+    primeWebAudioFromGesture();
     try {
       if (!preloadedTestAssets && !remoteAssetsToken && !selectedAssetState().valid && rememberedHandlesFound) {
         setStatus('Requesting access to saved game files…');
@@ -2554,6 +2733,7 @@
   var Module = {
     noInitialRun: true,
     canvas,
+    psxWebAudioLocked: true,
     preRun: muteTestAudio ? [() => { ENV.SDL_AUDIODRIVER = 'dummy'; }] : [],
     print: text => log(text),
     printErr: text => log(`ERROR: ${text}`),

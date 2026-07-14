@@ -31,6 +31,16 @@ psxrecomp_add_runtime_target(psx-runtime
 target_compile_definitions(psx-runtime PRIVATE PEPSIMAN_SFX_RETRIGGER_GUARD=1)
 
 if(EMSCRIPTEN)
+    # Modern Chromium supports WebAssembly SIMD. MDEC's IDCT and the software
+    # presentation loops are the limiting paths on two-core Windows handhelds;
+    # enabling SIMD lets LLVM vectorize them without changing guest behavior.
+    set_source_files_properties(
+        "${PSXRECOMP_ROOT}/runtime/src/mdec.c"
+        "${PSXRECOMP_ROOT}/runtime/src/gpu_sw_renderer.c"
+        "${PSXRECOMP_ROOT}/runtime/src/main.cpp"
+        PROPERTIES COMPILE_OPTIONS "-msimd128")
+    target_link_options(psx-runtime PRIVATE "-msimd128")
+
     option(PEPSIMAN_WEB_PRELOAD_TEST_ASSETS
         "Bundle local BIOS/disc files into a private browser test build" OFF)
     set_target_properties(psx-runtime PROPERTIES SUFFIX ".html")
