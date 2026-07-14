@@ -41,10 +41,7 @@ and full-rate presentation improvements for the native OpenGL backend.
 
 ## Credits
 
-This release is powered by [PSXRecomp](https://github.com/mstan/psxrecomp).
-Huge thanks to mstan and every PSXRecomp contributor for the recompiler,
-PlayStation runtime, compatibility research, and debugging infrastructure that
-Pepsiman Recompiled builds upon.
+Built with [PSXRecomp](https://github.com/mstan/psxrecomp).
 
 ## Known limitations
 
