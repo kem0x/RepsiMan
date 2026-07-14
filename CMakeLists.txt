@@ -49,7 +49,15 @@ if(EMSCRIPTEN)
         "-sEXPORTED_RUNTIME_METHODS=FS,callMain"
         "SHELL:--shell-file ${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html")
     set_property(TARGET psx-runtime APPEND PROPERTY LINK_DEPENDS
-        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html")
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/shell.html"
+        "${CMAKE_CURRENT_SOURCE_DIR}/web/assets/title-logo-recompiled.png")
+    add_custom_command(TARGET psx-runtime POST_BUILD
+        COMMAND "${CMAKE_COMMAND}" -E make_directory
+            "$<TARGET_FILE_DIR:psx-runtime>/assets"
+        COMMAND "${CMAKE_COMMAND}" -E copy_if_different
+            "${CMAKE_CURRENT_SOURCE_DIR}/web/assets/title-logo-recompiled.png"
+            "$<TARGET_FILE_DIR:psx-runtime>/assets/title-logo-recompiled.png"
+        VERBATIM)
 
     if(PEPSIMAN_WEB_PRELOAD_TEST_ASSETS)
         target_compile_definitions(psx-runtime PRIVATE PSX_WEB_TEST_ASSETS=1)

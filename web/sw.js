@@ -1,10 +1,11 @@
-const SHELL_CACHE = 'repsiman-shell-v1.0.0-9';
+const SHELL_CACHE = 'repsiman-shell-v1.0.0-10';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
   '/Pepsiman_Recompiled.js',
   '/Pepsiman_Recompiled.wasm',
   '/manifest.webmanifest',
+  '/assets/title-logo-recompiled.png',
   '/icons/icon-192.png',
   '/icons/icon-512.png',
   '/icons/apple-touch-icon.png',
