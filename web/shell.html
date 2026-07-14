@@ -630,7 +630,6 @@
         </div>
         <div class="actions">
           <button class="action-button" id="start" disabled>Start game</button>
-          <button class="action-button secondary" id="reconnect-files" type="button" hidden>Reconnect saved files</button>
           <button class="action-button secondary" id="pause" type="button" disabled>Pause</button>
           <button class="action-button secondary" id="levels" type="button" disabled>Levels</button>
           <button class="action-button secondary" id="saves" type="button">Saves</button>
@@ -744,7 +743,6 @@
   const discInput = document.getElementById('disc');
   const biosPickerButton = document.getElementById('bios-picker');
   const discPickerButton = document.getElementById('disc-picker');
-  const reconnectFilesButton = document.getElementById('reconnect-files');
   const startButton = document.getElementById('start');
   const pauseButton = document.getElementById('pause');
   const levelsButton = document.getElementById('levels');
@@ -1837,6 +1835,7 @@
   function selectionStatus() {
     const { bios, cue, bins, valid } = selectedAssetState();
     if (valid) return 'Ready — game files selected.';
+    if (rememberedHandlesFound) return 'Saved game files found — press Start to reconnect and play.';
     if (!bios) return 'Select your PS1 BIOS.';
     if (!cue) return 'Select the CUE and every BIN track together.';
     if (!bins.length) return 'The selected disc needs at least one BIN track.';
@@ -1846,7 +1845,7 @@
   function updateStart() {
     const selectedAssets = selectedAssetState().valid;
     startButton.disabled = !runtimeReady || started ||
-      (!preloadedTestAssets && !remoteAssetsToken && !selectedAssets);
+      (!preloadedTestAssets && !remoteAssetsToken && !selectedAssets && !rememberedHandlesFound);
     updateFileSummaries();
   }
 
@@ -1908,7 +1907,7 @@
     rememberedBiosHandle = null;
     rememberedDiscHandles = [];
     rememberedHandlesFound = false;
-    reconnectFilesButton.hidden = true;
+    updateStart();
   }
 
   async function handlePermission(handle, requestAccess) {
@@ -1921,10 +1920,7 @@
   }
 
   async function restoreRememberedAssets(requestAccess) {
-    if (!settings.rememberFiles) {
-      reconnectFilesButton.hidden = true;
-      return false;
-    }
+    if (!settings.rememberFiles) return false;
     try {
       const stored = await readRememberedHandles();
       rememberedBiosHandle = stored?.bios?.kind === 'file' ? stored.bios : null;
@@ -1932,7 +1928,6 @@
         ? stored.disc.filter(handle => handle?.kind === 'file')
         : [];
       rememberedHandlesFound = Boolean(rememberedBiosHandle && rememberedDiscHandles.length);
-      reconnectFilesButton.hidden = !rememberedHandlesFound;
       if (!rememberedHandlesFound) return false;
 
       const handles = [rememberedBiosHandle, ...rememberedDiscHandles];
@@ -1941,7 +1936,6 @@
 
       selectedBiosFile = await rememberedBiosHandle.getFile();
       selectedDiscFiles = await Promise.all(rememberedDiscHandles.map(handle => handle.getFile()));
-      reconnectFilesButton.hidden = true;
       updateStart();
       return selectedAssetState().valid;
     } catch (error) {
@@ -2018,12 +2012,6 @@
   biosInput.addEventListener('change', useFallbackBiosSelection);
   discInput.addEventListener('input', useFallbackDiscSelection);
   discInput.addEventListener('change', useFallbackDiscSelection);
-  reconnectFilesButton.addEventListener('click', async () => {
-    setStatus('Requesting access to saved game files…');
-    const restored = await restoreRememberedAssets(true);
-    setStatus(restored ? 'Ready — saved game files restored.' : 'File access was not granted.');
-    updateStart();
-  });
 
   function openMemoryCardDatabase() {
     return new Promise((resolve, reject) => {
@@ -2327,6 +2315,15 @@
 
   startButton.addEventListener('click', async () => {
     try {
+      if (!preloadedTestAssets && !remoteAssetsToken && !selectedAssetState().valid && rememberedHandlesFound) {
+        setStatus('Requesting access to saved game files…');
+        const restored = await restoreRememberedAssets(true);
+        if (!restored) {
+          setStatus('File access was not granted — press Start to try again or choose the files above.');
+          updateStart();
+          return;
+        }
+      }
       started = true;
       updateStart();
       setRunning(true);
@@ -2532,7 +2529,7 @@
         setStatus(restored
           ? 'Ready — saved game files restored.'
           : rememberedHandlesFound
-            ? 'Saved game files found — reconnect them once.'
+            ? 'Saved game files found — press Start to reconnect and play.'
             : selectionStatus());
       }
       updateStart();
