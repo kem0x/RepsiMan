@@ -419,6 +419,17 @@
       text-align: right;
     }
     .screen { position: relative; display: none; aspect-ratio: 4 / 3; min-height: 0; overflow: hidden; place-items: center; background: #000; }
+    .start-gate {
+      position: absolute;
+      inset: 0;
+      z-index: 6;
+      display: grid;
+      place-items: center;
+      background: #000;
+      pointer-events: none;
+    }
+    .start-gate[hidden] { display: none; }
+    .start-gate span { min-width: 160px; text-align: center; }
     html.widescreen-output .screen { aspect-ratio: 16 / 9; }
     :root:fullscreen body,
     :root:-webkit-full-screen body {
@@ -645,6 +656,9 @@
       </div>
       <div class="screen">
         <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Pepsiman game screen"></canvas>
+        <div class="start-gate" id="start-gate" hidden>
+          <span class="action-button">Tap to begin</span>
+        </div>
         <div class="recompiled-mark" id="recompiled-mark" hidden>RECOMPILED BY OL.MR</div>
         <button class="fullscreen-exit" id="fullscreen-exit" type="button" aria-label="Exit fullscreen">Exit</button>
         <div class="qol-pause" id="qol-pause" hidden>
@@ -759,6 +773,7 @@
   const logNode = document.getElementById('log');
   const canvas = document.getElementById('canvas');
   const screenNode = canvas.closest('.screen');
+  const startGate = document.getElementById('start-gate');
   const recompiledMark = document.getElementById('recompiled-mark');
   const qolPause = document.getElementById('qol-pause');
   const themeToggle = document.getElementById('theme-toggle');
@@ -2313,6 +2328,42 @@
     beginMemoryCardAutosave();
   }
 
+  function primeWebAudioFromGesture() {
+    const AudioContextClass = globalThis.AudioContext || globalThis.webkitAudioContext;
+    if (!AudioContextClass) return;
+    if (!Module.psxWebAudio) {
+      const context = new AudioContextClass();
+      Module.psxWebAudio = {
+        context,
+        nextTime: context.currentTime,
+        sources: new Set()
+      };
+    }
+    Module.psxWebAudio.context.resume().catch(() => {});
+  }
+
+  function launchGame(args) {
+    canvas.focus();
+    Module.callMain(args);
+    finishGameLaunch();
+    startGate.hidden = false;
+    setStatus('Ready — tap the game screen to begin.');
+  }
+
+  function unlockGameFromGesture() {
+    if (startGate.hidden) return;
+    primeWebAudioFromGesture();
+    Module.SDL2?.audioContext?.resume?.().catch(() => {});
+    Module.psxWebAudio?.context?.resume?.().catch(() => {});
+    startGate.hidden = true;
+    canvas.focus();
+    setStatus('Running — gamepad and keyboard controls are active.');
+  }
+
+  canvas.addEventListener('pointerdown', unlockGameFromGesture);
+  canvas.addEventListener('touchstart', unlockGameFromGesture, { passive: true });
+  document.addEventListener('keydown', unlockGameFromGesture);
+
   startButton.addEventListener('click', async () => {
     try {
       if (!preloadedTestAssets && !remoteAssetsToken && !selectedAssetState().valid && rememberedHandlesFound) {
@@ -2335,16 +2386,13 @@
         const cueName = 'Pepsiman (Japan).cue';
         Module.FS.writeFile('/game.toml', makeGameConfig(cueName));
         setStatus('Starting private preloaded test build…');
-        canvas.focus();
-        Module.callMain([
+        launchGame([
           '--game', '/game.toml',
           '--bios', '/bios/SCPH1001.BIN',
           '--disc', `/game/disc/${cueName}`,
           '--renderer', 'software',
           '--no-launcher'
         ]);
-        finishGameLaunch();
-        setStatus('Running — click the canvas for audio and controls.');
         return;
       }
       if (remoteAssetsToken) {
@@ -2370,16 +2418,13 @@
         }
         Module.FS.writeFile('/game.toml', makeGameConfig(cueName));
         setStatus('Starting game…');
-        canvas.focus();
-        Module.callMain([
+        launchGame([
           '--game', '/game.toml',
           '--bios', '/bios/SCPH1001.BIN',
           '--disc', `/game/disc/${cueName}`,
           '--renderer', 'software',
           '--no-launcher'
         ]);
-        finishGameLaunch();
-        setStatus('Running — tap the canvas for audio and controls.');
         return;
       }
       const bios = currentBiosFile();
@@ -2395,17 +2440,14 @@
         setStatus(`Loaded ${(loaded / 1048576).toFixed(1)} MiB of disc data…`);
       }
       Module.FS.writeFile('/game.toml', makeGameConfig(cue.name));
-      setStatus('Starting game… click the screen for audio and controls.');
-      canvas.focus();
-      Module.callMain([
+      setStatus('Preparing game…');
+      launchGame([
         '--game', '/game.toml',
         '--bios', '/bios/SCPH1001.BIN',
         '--disc', `/game/disc/${cue.name}`,
         '--renderer', 'software',
         '--no-launcher'
       ]);
-      finishGameLaunch();
-      setStatus('Running — click the canvas for audio and controls.');
     } catch (error) {
       started = false;
       pauseButton.disabled = true;
