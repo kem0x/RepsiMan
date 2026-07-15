@@ -193,10 +193,29 @@
     }
     .lede {
       max-width: 440px;
-      margin: 22px 0 0;
+      margin: 0;
       color: var(--muted);
       font-size: 14px;
       line-height: 1.7;
+    }
+    .intro-summary {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 128px;
+      align-items: start;
+      gap: 18px;
+      max-width: 440px;
+      margin-top: 22px;
+    }
+    .redrink-art {
+      display: block;
+      width: 100%;
+      height: auto;
+      aspect-ratio: 1;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      background: var(--surface-soft);
+      box-shadow: 0 8px 30px rgba(0, 0, 0, .14);
+      object-fit: cover;
     }
     .framework-credit {
       max-width: 440px;
@@ -738,10 +757,11 @@
       .header-label { display: none; }
       .app-layout { grid-template-columns: 1fr; gap: 28px; }
       h1 { font-size: clamp(40px, 13vw, 58px); }
-      .lede { margin-top: 16px; }
+      .intro-summary { margin-top: 16px; }
     }
     @media (max-width: 560px) {
       .header-actions { gap: 12px; }
+      .intro-summary { grid-template-columns: minmax(0, 1fr) 104px; gap: 14px; }
       .inputs { grid-template-columns: 1fr; }
       .panel-heading { display: block; }
       .panel-heading #status { display: block; margin-top: 8px; text-align: left; }
@@ -775,7 +795,10 @@
     <aside class="intro">
       <p class="release-line">Version 1.0 · Browser edition</p>
       <h1>Pepsiman,<br>recompiled.</h1>
-      <p class="lede">Play Pepsiman online in a modern browser through a WebAssembly-first static recompilation of the original PlayStation game, with optional visual and quality-of-life features. Bring your own legally obtained PS1 BIOS and Pepsiman disc files.</p>
+      <div class="intro-summary">
+        <p class="lede">Play Pepsiman online in a modern browser through a WebAssembly-first static recompilation of the original PlayStation game, with optional visual and quality-of-life features. Bring your own legally obtained PS1 BIOS and Pepsiman disc files.</p>
+        <img class="redrink-art" src="/icons/icon-512.png" width="512" height="512" alt="Pepsiman RE-DRINK! artwork">
+      </div>
       <p class="framework-credit">Built with <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>. Static recompilation translates the original executable for modern hardware; unlike a full source-code decompilation, it does not recreate the game as a conventional source port.</p>
       <div class="feature-preview">
         <div class="feature-preview-list" aria-label="Feature highlights">

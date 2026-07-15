@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Explore open-source game recompilation projects that bring classic console games to modern browsers with WebAssembly, controllers, saves, and QoL features.">
+  <meta name="description" content="Explore source-available game recompilation projects that bring classic console games to modern browsers with WebAssembly, controllers, saves, and QoL features.">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="author" content="Olim · ol.mr">
   <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
@@ -15,7 +15,7 @@
   <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://recomps.ol.mr/">
   <meta property="og:title" content="Recomps · Browser Game Recompilation Projects">
-  <meta property="og:description" content="Open-source static recompilation projects that bring classic console games to modern browsers and machines.">
+  <meta property="og:description" content="Source-available static recompilation projects that bring classic console games to modern browsers and machines.">
   <meta property="og:image" content="https://recomps.ol.mr/og.png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
@@ -23,7 +23,7 @@
   <meta property="og:image:alt" content="Recomps — old games, new machines">
   <meta name="twitter:card" content="summary_large_image">
   <meta name="twitter:title" content="Recomps · Browser Game Recompilation Projects">
-  <meta name="twitter:description" content="Open-source static recompilation projects that bring classic console games to modern browsers and machines.">
+  <meta name="twitter:description" content="Source-available static recompilation projects that bring classic console games to modern browsers and machines.">
   <meta name="twitter:image" content="https://recomps.ol.mr/og.png">
   <meta name="twitter:image:alt" content="Recomps — old games, new machines">
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
@@ -39,7 +39,7 @@
         "@id": "https://recomps.ol.mr/#website",
         "url": "https://recomps.ol.mr/",
         "name": "Recomps by ol.mr",
-        "description": "A collection of open-source static game recompilation projects for modern web browsers and machines.",
+        "description": "A collection of source-available static game recompilation projects for modern web browsers and machines.",
         "inLanguage": "en",
         "creator": {
           "@type": "Person",
@@ -169,15 +169,18 @@
     }
     .hero-copy { max-width: 390px; padding-bottom: 4px; }
     .hero-copy p { margin: 0; color: var(--muted); font-size: 15px; line-height: 1.75; }
-    .signals { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 26px; }
-    .signal {
-      padding: 10px 8px;
-      border: 1px solid var(--border);
-      border-radius: 6px;
-      color: var(--muted);
-      font-size: 9px;
-      letter-spacing: .13em;
-      text-align: center;
+    .hero-note {
+      display: flex;
+      justify-content: space-between;
+      gap: 20px;
+      margin-top: 28px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border);
+      color: var(--subtle);
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-size: 10px;
+      letter-spacing: .08em;
+      line-height: 1.5;
       text-transform: uppercase;
     }
     .collection { padding: 68px 0 88px; }
@@ -185,9 +188,16 @@
     .section-kicker { margin: 0 0 6px; color: var(--subtle); font-size: 10px; letter-spacing: .17em; text-transform: uppercase; }
     h2 { margin: 0; font-size: clamp(26px, 4vw, 42px); font-weight: 560; letter-spacing: -.035em; }
     .count { color: var(--muted); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
-    .game-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; }
+    .project-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 420px));
+      gap: 24px;
+    }
+    .project-entry { min-width: 0; }
     .game-card {
+      display: block;
       min-width: 0;
+      aspect-ratio: 1;
       overflow: hidden;
       border: 1px solid var(--border);
       border-radius: 10px;
@@ -195,48 +205,24 @@
       box-shadow: 0 1px 2px var(--shadow);
       transition: border-color .2s ease, transform .2s ease, box-shadow .2s ease;
     }
-    .game-card:hover { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 14px 40px var(--shadow); }
-    .game-art {
-      position: relative;
-      display: grid;
-      min-height: 320px;
-      overflow: hidden;
-      place-items: center;
-      background: #05070c;
-      color: #fff;
-      isolation: isolate;
+    .project-entry:hover .game-card { border-color: var(--border-strong); transform: translateY(-2px); box-shadow: 0 14px 40px var(--shadow); }
+    .game-poster {
+      display: block;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
     }
-    .game-art::after {
-      position: absolute;
-      inset: 0;
-      z-index: -1;
-      background: repeating-linear-gradient(0deg, transparent 0 3px, rgba(255,255,255,.025) 3px 4px);
-      content: "";
+    .project-caption {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 16px 2px 0;
     }
-    .platform-tag { position: absolute; top: 18px; left: 18px; color: rgba(255,255,255,.58); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
-    .game-logo { display: block; width: min(88%, 760px); height: auto; }
-    .game-details { padding: 22px; }
-    .game-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .game-name { margin: 0; font-size: 20px; font-weight: 570; letter-spacing: -.025em; }
-    .status { display: inline-flex; align-items: center; gap: 7px; color: var(--muted); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }
-    .status::before { width: 6px; height: 6px; border-radius: 50%; background: #f59e0b; content: ""; }
-    .game-description { max-width: 580px; margin: 12px 0 18px; color: var(--muted); font-size: 12px; line-height: 1.65; }
-    .game-meta { display: flex; flex-wrap: wrap; gap: 7px; }
-    .pill { padding: 6px 9px; border: 1px solid var(--border); border-radius: 999px; color: var(--muted); font-size: 9px; letter-spacing: .09em; text-transform: uppercase; }
-    .arrow { margin-left: auto; color: var(--subtle); font-size: 18px; transition: transform .2s ease, color .2s ease; }
-    .game-card:hover .arrow { color: var(--fg); transform: translateX(4px); }
-    .empty-card {
-      display: grid;
-      min-height: 100%;
-      padding: 30px;
-      place-items: center;
-      border: 1px dashed var(--border);
-      border-radius: 10px;
-      color: var(--subtle);
-      text-align: center;
-    }
-    .empty-card strong { display: block; margin-bottom: 8px; color: var(--muted); font-size: 12px; font-weight: 520; letter-spacing: .13em; text-transform: uppercase; }
-    .empty-card span { font-size: 11px; line-height: 1.6; }
+    .project-title { margin: 0; font-size: 18px; font-weight: 570; letter-spacing: -.025em; }
+    .project-meta { margin: 5px 0 0; color: var(--subtle); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+    .project-arrow { color: var(--subtle); font-size: 22px; transition: color .2s ease, transform .2s ease; }
+    .project-entry:hover .project-arrow { color: var(--fg); transform: translate(3px, -3px); }
     .about {
       display: grid;
       grid-template-columns: .7fr 1.3fr;
@@ -245,7 +231,7 @@
       border-top: 1px solid var(--border);
     }
     .about p { max-width: 720px; margin: 0; color: var(--muted); font-size: clamp(17px, 2.4vw, 25px); line-height: 1.55; }
-    .about a { color: var(--foreground); text-decoration: underline; text-underline-offset: 4px; }
+    .about a { color: var(--fg); text-decoration: underline; text-underline-offset: 4px; }
     footer { display: flex; justify-content: space-between; gap: 24px; padding-top: 34px; border-top: 1px solid var(--border); color: var(--subtle); font-size: 9px; letter-spacing: .1em; line-height: 1.6; text-transform: uppercase; }
     @media (max-width: 760px) {
       .shell { padding: 20px 16px 32px; }
@@ -253,8 +239,7 @@
       .header-label { display: none; }
       .hero { grid-template-columns: 1fr; align-items: start; gap: 34px; min-height: auto; padding: 86px 0 52px; }
       h1 { font-size: clamp(52px, 17vw, 78px); }
-      .game-grid { grid-template-columns: 1fr; }
-      .game-art { min-height: 245px; }
+      .project-grid { grid-template-columns: 1fr; }
       .about { grid-template-columns: 1fr; gap: 24px; }
       footer { flex-direction: column; }
     }
@@ -266,7 +251,7 @@
     <header class="site-header">
       <a href="https://ol.mr" aria-label="Visit ol.mr">ol.mr / recomps</a>
       <div class="header-actions">
-        <span class="header-label">Game recompilation experiments</span>
+        <span class="header-label">Classic games · modern targets</span>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch theme"><span aria-hidden="true">◐</span></button>
         <a href="https://github.com/kem0x/RepsiMan" rel="noopener noreferrer" target="_blank">Source</a>
       </div>
@@ -278,11 +263,10 @@
         <h1 id="hero-title">Old games,<br>new machines.</h1>
       </div>
       <div class="hero-copy">
-        <p>Open-source game recompilation projects that bring classic console games to modern web browsers and machines with WebAssembly, modern controls, persistent saves, and optional quality-of-life features.</p>
-        <div class="signals" aria-label="Collection characteristics">
-          <span class="signal">Web</span>
-          <span class="signal">Recomp</span>
-          <span class="signal">QoL</span>
+        <p>A growing collection of classic console games rebuilt for modern machines. Each project gets its own codebase, compatibility work, and thoughtful improvements—starting in the browser.</p>
+        <div class="hero-note" aria-label="Collection status">
+          <span>01 project live</span>
+          <span>More in progress</span>
         </div>
       </div>
     </section>
@@ -296,36 +280,25 @@
         <span class="count">01 / growing</span>
       </div>
 
-      <div class="game-grid">
-        <a class="game-card" href="https://pepsiman.ol.mr" aria-label="Open Pepsiman Recompiled">
-          <div class="game-art" aria-hidden="true">
-            <span class="platform-tag">PlayStation · 1999</span>
-            <img class="game-logo" src="/assets/title-logo-recompiled.png" alt="">
+      <div class="project-grid">
+        <a class="project-entry" href="https://pepsiman.ol.mr" aria-label="Open Pepsiman Recompiled">
+          <div class="game-card">
+            <img class="game-poster" src="/assets/redrink.png" width="512" height="512" alt="Pepsiman RE-DRINK! artwork">
           </div>
-          <div class="game-details">
-            <div class="game-topline">
-              <h3 class="game-name">Pepsiman</h3>
-              <span class="status">v1.0</span>
+          <div class="project-caption">
+            <div>
+              <h3 class="project-title">Pepsiman Recompiled</h3>
+              <p class="project-meta">PlayStation · 1999 · v1.0</p>
             </div>
-            <p class="game-description">Play Pepsiman online through a browser-native static recompilation of the cult PS1 runner, with local game files, controller support, persistent saves, widescreen, and optional modern conveniences.</p>
-            <div class="game-meta">
-              <span class="pill">WebAssembly</span>
-              <span class="pill">PWA</span>
-              <span class="pill">Controller</span>
-              <span class="arrow" aria-hidden="true">→</span>
-            </div>
+            <span class="project-arrow" aria-hidden="true">↗</span>
           </div>
         </a>
-
-        <div class="empty-card" aria-label="More recompilation projects are planned">
-          <div><strong>Next slot</strong><span>More games will appear here as their recomp builds become playable.</span></div>
-        </div>
       </div>
     </section>
 
     <section class="about" aria-labelledby="about-title">
       <div><p class="section-kicker" id="about-title">About the collection</p></div>
-      <p>These are compatibility and preservation experiments—not game distributions. Static recompilation translates original game executables for modern targets, while decompilation and reverse-engineering research helps document how the software works. You bring your own legally obtained game and system files; the projects provide the runtime and quality-of-life layer. Pepsiman Recompiled uses <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>.</p>
+      <p>Recomps is where my game recompilation projects live. Each one is an independent build and repository; no games or system files are distributed here. You bring your own legally obtained files. Pepsiman Recompiled is built with <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>.</p>
     </section>
 
     <footer>
