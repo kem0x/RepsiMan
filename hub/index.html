@@ -3,19 +3,75 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Game recompilation projects by Olim — pick a game and play it on modern platforms.">
+  <meta name="description" content="Explore open-source game recompilation projects that bring classic console games to modern browsers with WebAssembly, controllers, saves, and QoL features.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="Olim · ol.mr">
   <meta name="theme-color" content="#fafafa" media="(prefers-color-scheme: light)">
   <meta name="theme-color" content="#0a0a0a" media="(prefers-color-scheme: dark)">
+  <link rel="canonical" href="https://recomps.ol.mr/">
+  <link rel="sitemap" type="application/xml" href="https://recomps.ol.mr/sitemap.xml">
   <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Recomps by ol.mr">
+  <meta property="og:locale" content="en_US">
   <meta property="og:url" content="https://recomps.ol.mr/">
-  <meta property="og:title" content="Recomps by ol.mr">
-  <meta property="og:description" content="Old games, rebuilt for modern machines.">
+  <meta property="og:title" content="Recomps · Browser Game Recompilation Projects">
+  <meta property="og:description" content="Open-source static recompilation projects that bring classic console games to modern browsers and machines.">
   <meta property="og:image" content="https://recomps.ol.mr/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Recomps — old games, new machines">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Recomps by ol.mr">
-  <meta name="twitter:description" content="Old games, rebuilt for modern machines.">
+  <meta name="twitter:title" content="Recomps · Browser Game Recompilation Projects">
+  <meta name="twitter:description" content="Open-source static recompilation projects that bring classic console games to modern browsers and machines.">
   <meta name="twitter:image" content="https://recomps.ol.mr/og.png">
-  <title>Recomps — ol.mr</title>
+  <meta name="twitter:image:alt" content="Recomps — old games, new machines">
+  <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
+  <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+  <title>Recomps: Browser Game Recompilation Projects by ol.mr</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://recomps.ol.mr/#website",
+        "url": "https://recomps.ol.mr/",
+        "name": "Recomps by ol.mr",
+        "description": "A collection of open-source static game recompilation projects for modern web browsers and machines.",
+        "inLanguage": "en",
+        "creator": {
+          "@type": "Person",
+          "name": "Olim",
+          "url": "https://ol.mr/"
+        }
+      },
+      {
+        "@type": "CollectionPage",
+        "@id": "https://recomps.ol.mr/#collection-page",
+        "url": "https://recomps.ol.mr/",
+        "name": "Browser Game Recompilation Projects",
+        "isPartOf": { "@id": "https://recomps.ol.mr/#website" },
+        "mainEntity": { "@id": "https://recomps.ol.mr/#projects" }
+      },
+      {
+        "@type": "ItemList",
+        "@id": "https://recomps.ol.mr/#projects",
+        "name": "Available game recompilations",
+        "numberOfItems": 1,
+        "itemListElement": [
+          {
+            "@type": "ListItem",
+            "position": 1,
+            "url": "https://pepsiman.ol.mr/",
+            "name": "Pepsiman Recompiled"
+          }
+        ]
+      }
+    ]
+  }
+  </script>
   <script>
     (() => {
       const saved = localStorage.getItem('theme');
@@ -34,8 +90,6 @@
       --border: #e5e5e5;
       --border-strong: #a3a3a3;
       --shadow: rgba(0,0,0,.08);
-      --blue: #183678;
-      --red: #b7272f;
       font-family: Geist, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
     :root[data-theme="dark"] {
@@ -152,16 +206,6 @@
       color: #fff;
       isolation: isolate;
     }
-    .game-art::before {
-      position: absolute;
-      inset: -35% -10%;
-      z-index: -2;
-      background:
-        linear-gradient(112deg, transparent 31%, rgba(24,54,120,.95) 31% 48%, transparent 48%),
-        linear-gradient(70deg, transparent 48%, rgba(183,39,47,.88) 48% 60%, transparent 60%);
-      content: "";
-      transform: rotate(-5deg);
-    }
     .game-art::after {
       position: absolute;
       inset: 0;
@@ -170,9 +214,7 @@
       content: "";
     }
     .platform-tag { position: absolute; top: 18px; left: 18px; color: rgba(255,255,255,.58); font-size: 9px; letter-spacing: .18em; text-transform: uppercase; }
-    .art-title { text-align: center; transform: skewX(-7deg); }
-    .art-title strong { display: block; font-size: clamp(34px, 6vw, 66px); font-style: italic; letter-spacing: -.055em; line-height: .9; text-shadow: 3px 3px 0 var(--blue), -2px -1px 0 var(--red); }
-    .art-title span { display: block; margin-top: 12px; color: rgba(255,255,255,.68); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 9px; letter-spacing: .4em; }
+    .game-logo { display: block; width: min(88%, 760px); height: auto; }
     .game-details { padding: 22px; }
     .game-topline { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .game-name { margin: 0; font-size: 20px; font-weight: 570; letter-spacing: -.025em; }
@@ -236,7 +278,7 @@
         <h1 id="hero-title">Old games,<br>new machines.</h1>
       </div>
       <div class="hero-copy">
-        <p>Experimental recompilations that preserve original games while making them easier to run, control, and enjoy on modern machines.</p>
+        <p>Open-source game recompilation projects that bring classic console games to modern web browsers and machines with WebAssembly, modern controls, persistent saves, and optional quality-of-life features.</p>
         <div class="signals" aria-label="Collection characteristics">
           <span class="signal">Web</span>
           <span class="signal">Recomp</span>
@@ -258,14 +300,14 @@
         <a class="game-card" href="https://pepsiman.ol.mr" aria-label="Open Pepsiman Recompiled">
           <div class="game-art" aria-hidden="true">
             <span class="platform-tag">PlayStation · 1999</span>
-            <div class="art-title"><strong>PEPSIMAN</strong><span>RECOMPILED</span></div>
+            <img class="game-logo" src="/assets/title-logo-recompiled.png" alt="">
           </div>
           <div class="game-details">
             <div class="game-topline">
               <h3 class="game-name">Pepsiman</h3>
               <span class="status">v1.0</span>
             </div>
-            <p class="game-description">Play the cult PS1 runner directly in your browser, with local game files, persistent controls and saves, plus optional modern conveniences.</p>
+            <p class="game-description">Play Pepsiman online through a browser-native static recompilation of the cult PS1 runner, with local game files, controller support, persistent saves, widescreen, and optional modern conveniences.</p>
             <div class="game-meta">
               <span class="pill">WebAssembly</span>
               <span class="pill">PWA</span>
@@ -283,7 +325,7 @@
 
     <section class="about" aria-labelledby="about-title">
       <div><p class="section-kicker" id="about-title">About the collection</p></div>
-      <p>These are compatibility and preservation experiments—not game distributions. You bring your own legally obtained game and system files; the projects provide the recompilation runtime and quality-of-life layer. Pepsiman Recompiled uses <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>.</p>
+      <p>These are compatibility and preservation experiments—not game distributions. Static recompilation translates original game executables for modern targets, while decompilation and reverse-engineering research helps document how the software works. You bring your own legally obtained game and system files; the projects provide the runtime and quality-of-life layer. Pepsiman Recompiled uses <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>.</p>
     </section>
 
     <footer>

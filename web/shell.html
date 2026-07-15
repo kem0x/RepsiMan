@@ -3,28 +3,86 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="Play Pepsiman Recompiled in your browser with widescreen, controller support, persistent saves, and optional quality-of-life features.">
+  <meta name="description" content="Play Pepsiman online in your browser through a WebAssembly static recompilation of the PS1 game, with widescreen, controllers, saves, and optional QoL features.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="Olim · ol.mr">
   <meta name="theme-color" content="#0a0a0a">
   <meta name="application-name" content="Pepsiman Recompiled">
   <link rel="canonical" href="https://pepsiman.ol.mr/">
+  <link rel="sitemap" type="application/xml" href="https://pepsiman.ol.mr/sitemap.xml">
   <meta property="og:type" content="website">
   <meta property="og:site_name" content="Recomps">
-  <meta property="og:title" content="Pepsiman Recompiled v1.0">
-  <meta property="og:description" content="The PS1 cult classic, recompiled for the web. Bring your own BIOS and disc files; they stay local.">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:title" content="Play Pepsiman Online · Pepsiman Recompiled">
+  <meta property="og:description" content="A browser-native WebAssembly recompilation of the cult PlayStation runner, with widescreen, controllers, persistent saves, and optional QoL features.">
   <meta property="og:url" content="https://pepsiman.ol.mr/">
-  <meta property="og:image" content="https://pepsiman.ol.mr/og.png">
+  <meta property="og:image" content="https://pepsiman.ol.mr/og.png?v=logo-1">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Pepsiman Recompiled logo">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Pepsiman Recompiled v1.0">
-  <meta name="twitter:description" content="The PS1 cult classic, recompiled for the web.">
-  <meta name="twitter:image" content="https://pepsiman.ol.mr/og.png">
+  <meta name="twitter:title" content="Play Pepsiman Online · Pepsiman Recompiled">
+  <meta name="twitter:description" content="A browser-native WebAssembly recompilation of the cult PlayStation runner, with modern visual and quality-of-life options.">
+  <meta name="twitter:image" content="https://pepsiman.ol.mr/og.png?v=logo-1">
+  <meta name="twitter:image:alt" content="Pepsiman Recompiled logo">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" type="image/png" sizes="32x32" href="/icons/favicon-32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192.png">
   <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
-  <title>Pepsiman Recompiled v1.0</title>
+  <title>Play Pepsiman Online in Your Browser | Pepsiman Recompiled</title>
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://pepsiman.ol.mr/#website",
+        "url": "https://pepsiman.ol.mr/",
+        "name": "Pepsiman Recompiled",
+        "description": "Play Pepsiman online through a browser-native WebAssembly static recompilation of the original PlayStation game.",
+        "inLanguage": "en",
+        "creator": {
+          "@type": "Person",
+          "name": "Olim",
+          "url": "https://ol.mr/"
+        }
+      },
+      {
+        "@type": ["VideoGame", "SoftwareApplication"],
+        "@id": "https://pepsiman.ol.mr/#game",
+        "name": "Pepsiman Recompiled",
+        "url": "https://pepsiman.ol.mr/",
+        "mainEntityOfPage": { "@id": "https://pepsiman.ol.mr/#website" },
+        "image": "https://pepsiman.ol.mr/og.png?v=logo-1",
+        "description": "A WebAssembly-first static recompilation of Pepsiman for modern web browsers with widescreen, controller support, persistent PlayStation memory cards, and optional quality-of-life features.",
+        "applicationCategory": "GameApplication",
+        "operatingSystem": "Modern web browser",
+        "gamePlatform": ["Web browser", "Windows", "macOS", "Linux", "Android"],
+        "playMode": "SinglePlayer",
+        "genre": ["Action", "Runner"],
+        "softwareVersion": "1.0",
+        "isAccessibleForFree": true,
+        "author": {
+          "@type": "Person",
+          "name": "Olim",
+          "url": "https://ol.mr/"
+        },
+        "sameAs": ["https://github.com/kem0x/RepsiMan"],
+        "featureList": [
+          "Experimental widescreen presentation",
+          "60 FPS presentation smoothing",
+          "Gamepad support and keyboard remapping",
+          "Persistent PlayStation memory cards",
+          "Enhanced pause menu and level select",
+          "Offline progressive web app support"
+        ]
+      }
+    ]
+  }
+  </script>
   <script>
     (() => {
       const saved = localStorage.getItem('theme');
@@ -153,6 +211,34 @@
       text-decoration-color: var(--border-hover);
       text-underline-offset: 3px;
     }
+    .feature-preview {
+      max-width: 440px;
+      margin-top: 24px;
+      padding-top: 18px;
+      border-top: 1px solid var(--border);
+    }
+    .feature-preview-list { display: grid; gap: 9px; margin: 0 0 14px; }
+    .feature-preview-item {
+      display: grid;
+      grid-template-columns: minmax(112px, auto) minmax(0, 1fr);
+      gap: 12px;
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .feature-preview-item strong { color: var(--foreground); font-weight: 550; }
+    .feature-explore {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--foreground);
+      font-size: 11px;
+      font-weight: 550;
+      text-decoration: underline;
+      text-decoration-color: var(--border-hover);
+      text-underline-offset: 4px;
+    }
+    .feature-explore:hover { text-decoration-color: var(--foreground); }
     .game-card {
       min-width: 0;
       overflow: hidden;
@@ -217,6 +303,12 @@
     }
     .fallback-file-input { display: none; }
     .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 14px; }
+    .session-tools-note {
+      margin: 11px 0 0;
+      color: var(--subtle);
+      font-size: 10px;
+      line-height: 1.5;
+    }
     .action-button {
       min-height: 40px;
       padding: 0 15px;
@@ -280,6 +372,26 @@
     }
     .controller-state.connected::before { background: #22c55e; }
     .controls-copy { margin: 0 0 14px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .feature-groups { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 18px; }
+    .feature-group {
+      padding: 14px;
+      border: 1px solid var(--border);
+      border-radius: 7px;
+      background: var(--surface-soft);
+    }
+    .feature-group h3 { margin: 0 0 10px; font-size: 12px; font-weight: 600; }
+    .feature-list { display: grid; gap: 9px; margin: 0; padding: 0; list-style: none; }
+    .feature-list li { color: var(--muted); font-size: 10px; line-height: 1.45; }
+    .feature-list strong { display: block; margin-bottom: 1px; color: var(--foreground); font-size: 11px; font-weight: 550; }
+    .feature-availability {
+      margin: 14px 0 0;
+      padding: 10px 12px;
+      border-left: 2px solid var(--foreground);
+      background: var(--surface-soft);
+      color: var(--muted);
+      font-size: 10px;
+      line-height: 1.5;
+    }
     .bindings-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .binding-row {
       display: flex;
@@ -384,6 +496,19 @@
       letter-spacing: .08em;
       text-transform: uppercase;
     }
+    .experimental-badge {
+      display: inline-block;
+      padding: 2px 5px;
+      border: 1px dashed var(--border-hover);
+      border-radius: 999px;
+      color: var(--muted);
+      font-size: 8px;
+      font-weight: 550;
+      letter-spacing: .08em;
+      line-height: 1.2;
+      text-transform: uppercase;
+    }
+    .feature-list .experimental-badge { margin-left: 6px; vertical-align: 1px; }
     .setting-switch { position: relative; width: 40px; height: 22px; flex: 0 0 auto; }
     .setting-switch input { position: absolute; opacity: 0; pointer-events: none; }
     .setting-track {
@@ -596,7 +721,9 @@
     }
     body.running .site-header { margin: 0 4px 8px; }
     body.running .header-label, body.running .intro, body.running .inputs,
-    body.running .panel-heading > div, body.running .privacy-copy, body.running #log { display: none; }
+    body.running .panel-heading > div, body.running .privacy-copy, body.running .session-tools-note,
+    body.running #log { display: none; }
+    body:not(.running) .in-game-only { display: none; }
     body.running .app-layout { display: block; width: 100%; height: 100%; min-height: 0; overflow: hidden; }
     body.running .game-card { height: 100%; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
     body.running .panel { display: flex; align-items: center; gap: 10px; padding: 8px; border-bottom: 1px solid var(--border); }
@@ -624,6 +751,7 @@
       body.running .site-shell { padding: 6px; }
       .controls-content { padding: 16px; }
       .bindings-grid { grid-template-columns: 1fr; }
+      .feature-groups { grid-template-columns: 1fr; }
       .levels-grid { grid-template-columns: 1fr; }
       .controls-footer { align-items: stretch; flex-direction: column; }
       .save-actions { grid-template-columns: 1fr; }
@@ -647,8 +775,16 @@
     <aside class="intro">
       <p class="release-line">Version 1.0 · Browser edition</p>
       <h1>Pepsiman,<br>recompiled.</h1>
-      <p class="lede">A WebAssembly-first recompilation that runs directly in your browser, with optional modern quality-of-life features. Bring your own legally obtained PlayStation BIOS and Pepsiman disc files.</p>
-      <p class="framework-credit">Built with <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>.</p>
+      <p class="lede">Play Pepsiman online in a modern browser through a WebAssembly-first static recompilation of the original PlayStation game, with optional visual and quality-of-life features. Bring your own legally obtained PS1 BIOS and Pepsiman disc files.</p>
+      <p class="framework-credit">Built with <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>. Static recompilation translates the original executable for modern hardware; unlike a full source-code decompilation, it does not recreate the game as a conventional source port.</p>
+      <div class="feature-preview">
+        <div class="feature-preview-list" aria-label="Feature highlights">
+          <div class="feature-preview-item"><strong>Modern picture</strong><span>16:9, corrected textures, and optional geometry correction.</span></div>
+          <div class="feature-preview-item"><strong>Smoother play</strong><span>60 FPS presentation, faster loading, and low-latency input.</span></div>
+          <div class="feature-preview-item"><strong>Built for browsers</strong><span>Controllers, remapping, persistent saves, fullscreen, and offline play.</span></div>
+        </div>
+        <button class="feature-explore" id="features" type="button">Explore every enhancement →</button>
+      </div>
     </aside>
     <section class="game-card">
       <div class="panel" id="loader">
@@ -674,8 +810,8 @@
         </div>
         <div class="actions">
           <button class="action-button" id="start" disabled>Start game</button>
-          <button class="action-button secondary" id="pause" type="button" disabled>Pause</button>
-          <button class="action-button secondary" id="levels" type="button" disabled>Levels</button>
+          <button class="action-button secondary in-game-only" id="pause" type="button" disabled title="Available while playing a level" aria-describedby="session-tools-note">Pause</button>
+          <button class="action-button secondary in-game-only" id="levels" type="button" disabled title="Available while playing a level" aria-describedby="session-tools-note">Levels</button>
           <button class="action-button secondary" id="saves" type="button">Saves</button>
           <button class="action-button secondary" id="controls" type="button">Controls</button>
           <button class="action-button secondary" id="settings" type="button">Settings</button>
@@ -685,6 +821,7 @@
           <button class="action-button secondary" id="install-app" type="button" hidden>Install app</button>
           <button class="action-button secondary" id="fullscreen" type="button">Fullscreen</button>
         </div>
+        <p class="session-tools-note" id="session-tools-note">Pause, resume, restart, and level select become available after you enter a level.</p>
         <pre id="log" aria-live="polite"></pre>
       </div>
       <div class="screen">
@@ -768,6 +905,57 @@
     <p class="controls-note">Level-select progress is separate from Pepsiman's original memory-card save.</p>
   </div>
 </dialog>
+<dialog class="controls-dialog" id="features-dialog" aria-labelledby="features-title">
+  <div class="controls-content">
+    <div class="controls-heading">
+      <div>
+        <p class="section-label">What this port adds</p>
+        <h2 id="features-title">Built to be the best way to play</h2>
+      </div>
+      <button class="dialog-close" id="features-close" type="button" aria-label="Close feature overview">×</button>
+    </div>
+    <div class="feature-groups">
+      <section class="feature-group">
+        <h3>Picture</h3>
+        <ul class="feature-list">
+          <li><strong>Widescreen</strong>Experimental 16:9 world view with original 4:3 FMVs.</li>
+          <li><strong>60 FPS smoothing</strong>Smoother presentation while game logic and audio keep their original timing.</li>
+          <li><strong>Texture correction <span class="experimental-badge">Experimental</span></strong>Reduces affine texture warping, but some scenes may still show visual artifacts.</li>
+          <li><strong>Geometry correction <span class="experimental-badge">Experimental</span></strong>Reduces vertex wobble and polygon seams, but is not perfect in every scene.</li>
+          <li><strong>Output filtering</strong>Choose crisp pixels or smoother browser filtering.</li>
+        </ul>
+      </section>
+      <section class="feature-group">
+        <h3>Play</h3>
+        <ul class="feature-list">
+          <li><strong>Enhanced pause menu</strong>Resume, restart the current level, select a reached scene, or return to title.</li>
+          <li><strong>Persistent level select</strong>Reached scenes remain unlocked in this browser.</li>
+          <li><strong>Unlimited lives</strong>An optional assist keeps the remaining-life count topped up.</li>
+          <li><strong>Focus pause</strong>Optionally freezes play when the tab loses focus.</li>
+        </ul>
+      </section>
+      <section class="feature-group">
+        <h3>Speed and response</h3>
+        <ul class="feature-list">
+          <li><strong>Fast boot</strong>Skip the PlayStation BIOS shell and enter the game directly.</li>
+          <li><strong>Faster CD loading</strong>Conservative 2× data reads preserve CD audio.</li>
+          <li><strong>Low-latency input</strong>Controls are sampled again immediately before each presented frame.</li>
+          <li><strong>Original and Enhanced presets</strong>Switch between a faithful setup and the recommended modern defaults.</li>
+        </ul>
+      </section>
+      <section class="feature-group">
+        <h3>Browser native</h3>
+        <ul class="feature-list">
+          <li><strong>Gamepad and remapping</strong>Standard controllers work automatically; keyboard bindings are fully configurable.</li>
+          <li><strong>Real memory cards</strong>Autosave, import, and export both raw PlayStation memory-card slots.</li>
+          <li><strong>Remembered local files</strong>Reconnect saved BIOS and disc permissions without uploading their contents.</li>
+          <li><strong>Offline app and fullscreen</strong>Install the runtime as a PWA and play without browser chrome.</li>
+        </ul>
+      </section>
+    </div>
+    <p class="feature-availability"><strong>In-game tools:</strong> Pause, resume, restart, and level select are shown only after the game starts and become usable while you are inside a level.</p>
+  </div>
+</dialog>
 <dialog class="controls-dialog" id="settings-dialog" aria-labelledby="settings-title">
   <div class="controls-content">
     <div class="controls-heading">
@@ -797,6 +985,7 @@
   const savesButton = document.getElementById('saves');
   const controlsButton = document.getElementById('controls');
   const settingsButton = document.getElementById('settings');
+  const featuresButton = document.getElementById('features');
   const testStartButton = document.getElementById('test-start');
   const testConfirmButton = document.getElementById('test-confirm');
   const testStageOneButton = document.getElementById('test-stage-one');
@@ -884,8 +1073,8 @@
     ['lowLatencyInput', 'Low-latency input', 'Sample controls again immediately before presenting each frame.', true],
     ['smooth60', '60 FPS smoothing', 'Insert a visual midpoint between the original 30 FPS gameplay frames. Timing and audio stay original; adds one display frame of latency.', false],
     ['widescreen', 'Widescreen', 'Use the experimental 16:9 world view; FMVs remain pillarboxed at 4:3.', true],
-    ['geometryCorrection', 'Geometry correction', 'Reduce 3D vertex wobble and polygon seams with subpixel projection.', true],
-    ['textureCorrection', 'Texture correction', 'Reduce affine texture warping with stable perspective-correct quad mapping.', false],
+    ['geometryCorrection', 'Geometry correction', 'Reduce 3D vertex wobble and polygon seams with experimental subpixel projection; some scenes may still show artifacts.', true, true],
+    ['textureCorrection', 'Texture correction', 'Reduce affine texture warping with experimental perspective-correct mapping; some scenes may still show artifacts.', false, true],
     ['unlimitedLives', 'Unlimited lives', 'Keep Pepsiman’s remaining lives at 99 during gameplay.', false],
     ['pauseOnBlur', 'Pause when unfocused', 'Freeze the game when this tab is hidden or loses visibility.', false],
     ['smoothOutput', 'Smooth output', 'Use browser filtering instead of crisp nearest-neighbor pixels.', false],
@@ -935,7 +1124,7 @@
     for (const button of document.querySelectorAll('[data-preset]'))
       button.classList.toggle('active', button.dataset.preset === preset);
     const list = document.getElementById('settings-list');
-    list.replaceChildren(...settingDefs.map(([key, name, description, restart]) => {
+    list.replaceChildren(...settingDefs.map(([key, name, description, restart, experimental]) => {
       const row = document.createElement('div');
       row.className = 'setting-row';
       const copy = document.createElement('div');
@@ -947,6 +1136,12 @@
         const badge = document.createElement('span');
         badge.className = 'restart-badge';
         badge.textContent = 'Next launch';
+        title.append(badge);
+      }
+      if (experimental) {
+        const badge = document.createElement('span');
+        badge.className = 'experimental-badge';
+        badge.textContent = 'Experimental';
         title.append(badge);
       }
       const detail = document.createElement('p');
@@ -1207,6 +1402,14 @@
     applyLiveBinding(changed);
     renderBindings();
   }, true);
+
+  const featuresDialog = document.getElementById('features-dialog');
+  featuresButton.addEventListener('click', () => featuresDialog.showModal());
+  document.getElementById('features-close').addEventListener('click', () => featuresDialog.close());
+  featuresDialog.addEventListener('click', event => {
+    if (event.target === featuresDialog) featuresDialog.close();
+  });
+  featuresDialog.addEventListener('close', () => featuresButton.focus());
 
   const settingsDialog = document.getElementById('settings-dialog');
   renderSettings();
