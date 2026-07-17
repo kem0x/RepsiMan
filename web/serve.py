@@ -36,11 +36,8 @@ class WasmHandler(SimpleHTTPRequestHandler):
         relative = unquote(parsed.path[len(prefix):]).lstrip("/")
         candidate = (self.asset_root / relative).resolve()
         root = self.asset_root.resolve()
-        allowed = (
-            relative == "SCPH1001.bin" or
-            (relative.startswith("PEPSIMAN/") and
-             candidate.suffix.lower() in {".cue", ".bin"})
-        )
+        allowed = (relative.startswith("PEPSIMAN/") and
+                   candidate.suffix.lower() in {".cue", ".bin"})
         if not allowed or root not in candidate.parents or not candidate.is_file():
             return False
         return candidate
@@ -92,7 +89,7 @@ def main():
     parser.add_argument("--port", type=int, default=8080)
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--dir", default=str(Path(__file__).resolve().parents[1] / "build-web"))
-    parser.add_argument("--assets-dir", help="Project root containing SCPH1001.bin and PEPSIMAN/")
+    parser.add_argument("--assets-dir", help="Project root containing PEPSIMAN/")
     parser.add_argument("--token", help="Private asset token (generated when omitted)")
     parser.add_argument("--cert", help="TLS certificate PEM")
     parser.add_argument("--key", help="TLS private key PEM")

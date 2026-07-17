@@ -8,9 +8,10 @@ The browser/PWA build is the primary release platform. Native builds remain
 useful for framework development and debugging, but they are not maintained as
 v1 product targets across macOS, Windows, and Linux.
 
-This repository does **not** include a PlayStation BIOS, game disc, extracted
-game executable, generated game code, memory cards, or save states. You must
-supply legally obtained copies of the required assets yourself.
+This repository includes the MIT-licensed PCSX-Redux OpenBIOS replacement. It
+does **not** include the game disc, extracted game executable, generated game
+code, memory cards, or save states. You must supply a legally obtained copy of
+the Pepsiman disc yourself.
 
 Built with [PSXRecomp](https://github.com/mstan/psxrecomp).
 
@@ -27,7 +28,7 @@ Built with [PSXRecomp](https://github.com/mstan/psxrecomp).
 - Experimental opt-in 16:9 presentation with 4:3 FMV pillarboxing
 - Optional subpixel geometry correction to reduce PS1 vertex wobble and seams
 - Perspective texture correction enabled by Enhanced to reduce affine warping and swimming
-- Bring-your-own BIOS and CUE/BIN files in the browser
+- Bundled open-source BIOS; bring only your own CUE/BIN disc files
 
 The PWA can run in compatible Chromium-based browsers on desktop and Android.
 There is no separate Android APK. Safari, Firefox, individual controller models,
@@ -54,7 +55,7 @@ psxrecomp/recompiler/build/psxrecomp-game --config game.toml
 ```
 
 The exact extraction workflow is not automated yet; the public browser build
-instead asks each player for their own BIOS and disc files locally.
+instead asks each player for their own disc files locally.
 
 ## Developer-only native reference build
 
@@ -84,7 +85,7 @@ Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Do not open the HTML file
 directly; the threaded build needs the headers supplied by `web/serve.py`.
 
 The browser build includes controller support, remapping, local saves,
-remembered files, widescreen, 60 FPS smoothing, and optional QoL settings. See
+remembered files, scene leaderboards, widescreen, 60 FPS smoothing, and optional QoL settings. See
 [web/README.md](web/README.md) for detailed browser and LAN testing notes.
 
 ## Deploy to Cloudflare Pages
@@ -98,6 +99,14 @@ npx wrangler login
 npx wrangler pages project create "$CF_PAGES_PROJECT" --production-branch main
 ```
 
+Create and migrate the D1 leaderboard once. Forks should replace the database
+ID in `wrangler.toml` with the ID printed by the create command:
+
+```sh
+npx wrangler d1 create pepsiman-leaderboard
+npx wrangler d1 execute LEADERBOARD_DB --remote --file=migrations/0001_leaderboard.sql
+```
+
 Package and deploy the public browser build:
 
 ```sh
@@ -106,8 +115,9 @@ npx wrangler pages deploy dist-web --project-name "$CF_PAGES_PROJECT" --branch m
 ```
 
 The package script copies only the public shell, JavaScript runtime, WASM module,
-PWA metadata/icons, social card, and required Pages headers. It rejects a
-missing build and never copies `.data`, BIOS, CUE, or BIN files.
+redistributable OpenBIOS images, PWA metadata/icons, social card, and required
+Pages worker/headers. It rejects a missing build and never copies `.data`, proprietary
+BIOS images, CUE, or game BIN files.
 
 Add a custom domain from the Pages project's **Custom domains** settings in the
 Cloudflare dashboard. Keep the generated `_headers` file: its COOP/COEP headers
@@ -122,6 +132,10 @@ should currently be described as **source-available for noncommercial use**, not
 as OSI-approved open-source software. This repository's original files do not yet have
 an explicit license; no license is granted merely by making the repository
 public.
+
+The bundled OpenBIOS binaries are built from the pinned PCSX-Redux source and
+distributed under the MIT license; provenance and checksums are recorded in
+[`third_party/openbios/README.md`](third_party/openbios/README.md).
 
 *Pepsiman*, PlayStation, and related names and assets belong to their respective
 owners. This is an unofficial preservation and engineering project and is not

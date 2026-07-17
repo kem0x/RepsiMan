@@ -1,9 +1,12 @@
-const SHELL_CACHE = 'repsiman-shell-v1.0.0-11';
+const SHELL_CACHE = 'repsiman-shell-v1.0.0-13';
 const SHELL_ASSETS = [
   '/',
   '/index.html',
   '/Pepsiman_Recompiled.js',
   '/Pepsiman_Recompiled.wasm',
+  '/openbios.bin',
+  '/openbios-fastboot.bin',
+  '/OPENBIOS-LICENSE.txt',
   '/manifest.webmanifest',
   '/assets/title-logo-recompiled.png',
   '/icons/icon-192.png',
@@ -33,9 +36,10 @@ self.addEventListener('fetch', event => {
   const url = new URL(request.url);
   if (url.origin !== self.location.origin) return;
 
-  /* Private LAN test assets contain the user's BIOS and disc. They must always
+  /* Private LAN test assets contain the user's disc. They must always
    * come directly from the Mac and must never enter the PWA cache. */
   if (url.pathname.startsWith('/__repsiman_assets__/')) return;
+  if (url.pathname.startsWith('/api/')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).catch(() => caches.match('/index.html')));

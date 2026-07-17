@@ -3,7 +3,8 @@
 This target runs the recompiled PS1 runtime in a browser worker, presents the
 software-rendered framebuffer through an HTML canvas, and sends queued SPU audio
 through Web Audio. It is the primary Pepsiman Recompiled v1 release target. The
-normal build does not contain a BIOS or game disc.
+normal build contains the redistributable PCSX-Redux OpenBIOS replacement, but
+does not contain the game disc.
 
 Built with [PSXRecomp](https://github.com/mstan/psxrecomp).
 
@@ -27,8 +28,8 @@ Serve it with the included local server:
 python3 web/serve.py
 ```
 
-Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Choose the 512 KiB PS1
-BIOS, then choose the CUE and every BIN track together. Press **Start game**.
+Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Choose the CUE and every
+BIN track together, then press **Start game**. No proprietary PS1 BIOS is needed.
 Chromium-based browsers remember permission-backed file handles in IndexedDB;
 later visits restore them automatically or show **Reconnect saved files** if
 permission needs to be renewed. Other browsers retain the normal per-session
@@ -43,9 +44,9 @@ either slot at any time. Export important progress before clearing site data or
 moving to a different browser profile.
 
 The packaged browser build is also an installable offline PWA. Its service
-worker caches only the public HTML, JavaScript, WebAssembly, manifest, and icon
-files. BIOS and disc files are never cached; installed sessions continue to use
-the user's local files or remembered file handles.
+worker caches the public HTML, JavaScript, WebAssembly, OpenBIOS, manifest, and
+icon files. Game-disc files are never cached; installed sessions continue to
+use the user's local files or remembered file handles.
 
 The **Settings** panel stores optional QoL choices in the browser. **Enhanced**
 is the fresh-install default and enables fast boot, conservative 2x CD loading,
@@ -72,7 +73,7 @@ already-60 Hz content stay on their original presentation path. Smoothing adds
 one display frame of visual latency.
 
 The **Widescreen** switch selects the framework's experimental 16:9 world-view
-path while keeping BIOS screens and FMVs at their original 4:3 aspect. It is
+path while keeping OpenBIOS screens and FMVs at their original 4:3 aspect. It is
 part of the Enhanced preset; Original switches presentation back to faithful
 4:3.
 
@@ -94,8 +95,8 @@ adds. Opening the HTML file directly with `file://` will not work.
 
 ## Private automated test build
 
-For local development only, the linker can preload `SCPH1001.bin` and the
-`PEPSIMAN/` directory from the project root:
+For local development only, the linker can preload the `PEPSIMAN/` directory
+from the project root:
 
 ```sh
 emcmake cmake -S . -B build-web -G Ninja \
@@ -107,7 +108,7 @@ cmake --build build-web -j4
 ```
 
 Then open the page with `?preloaded-test-assets`. This produces a roughly
-207 MiB `.data` file containing copyrighted assets. Never distribute it; switch
+207 MiB `.data` file containing copyrighted game assets. Never distribute it; switch
 the option back off before making a package.
 
 Append `&mute-test-audio` to a private test URL to force SDL's dummy audio
@@ -121,9 +122,24 @@ controller sampling window and are suitable for deterministic menu automation.
 and Level Select and waits for the runtime's explicit level-action completion
 signal.
 
+## Leaderboard development
+
+The scene timer counts emulated PlayStation VBLANKs, so host slowdown does not
+change a result. Personal bests work on the normal local server. To test the D1
+API and global board locally, package the build and run:
+
+```sh
+scripts/package-web.sh
+npx wrangler d1 execute LEADERBOARD_DB --local --file=migrations/0001_leaderboard.sql
+npx wrangler pages dev dist-web
+```
+
+Open the Wrangler URL. Production uses the same migration and the
+`LEADERBOARD_DB` binding in `wrangler.toml`.
+
 ## Test from another device on the LAN
 
-The server can expose only the local BIOS and Pepsiman CUE/BIN files behind a
+The server can expose only the local Pepsiman CUE/BIN files behind a
 random URL token. Because the runtime uses browser threads, a phone must trust
 the HTTPS certificate; plain `http://<mac-ip>` is insufficient.
 

@@ -31,6 +31,10 @@ The public browser package may contain only:
 index.html
 Pepsiman_Recompiled.js
 Pepsiman_Recompiled.wasm
+_worker.js
+openbios.bin
+openbios-fastboot.bin
+OPENBIOS-LICENSE.txt
 _headers
 manifest.webmanifest
 sw.js
@@ -45,8 +49,10 @@ icons/favicon-32.png
 ```
 
 Never publish `Pepsiman_Recompiled.data`; private test builds use it to bundle
-the BIOS and disc. Also exclude all BIOS files, CUE/BIN tracks, extracted game
-files, memory cards, saves, crash dumps, TLS private keys, and local settings.
+the game disc. Also exclude proprietary BIOS files, CUE/BIN game tracks,
+extracted game files, memory cards, saves, crash dumps, TLS private keys, and
+local settings. The two listed OpenBIOS images are intentionally public and
+redistributable under their bundled MIT license.
 
 ## Repository layout
 

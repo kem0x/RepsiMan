@@ -77,6 +77,7 @@
           "Gamepad support and keyboard remapping",
           "Persistent PlayStation memory cards",
           "Enhanced pause menu and level select",
+          "Per-scene personal bests and online leaderboards",
           "Offline progressive web app support"
         ]
       }
@@ -342,6 +343,49 @@
     .action-button.secondary { border-color: var(--border); background: transparent; color: var(--muted); }
     .action-button.secondary:hover { border-color: var(--border-hover); color: var(--foreground); }
     .action-button:disabled { cursor: not-allowed; opacity: .35; }
+    .leaderboard-browser {
+      padding: 16px 18px 18px;
+      border-top: 1px solid var(--border);
+      background: color-mix(in srgb, var(--surface-soft) 48%, var(--surface));
+    }
+    .leaderboard-browser-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+    .leaderboard-browser-heading h2 { font-size: 14px; }
+    .leaderboard-browser-pb { color: var(--muted); font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .leaderboard-filters { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 7px; margin-top: 13px; }
+    .leaderboard-filter { display: grid; gap: 5px; color: var(--subtle); font-size: 8px; letter-spacing: .12em; text-transform: uppercase; }
+    .leaderboard-filter select {
+      width: 100%;
+      min-width: 0;
+      height: 34px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+      color: var(--foreground);
+      font-size: 10px;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+    .leaderboard-filter select:focus { border-color: var(--border-hover); outline: none; }
+    .leaderboard-browser-list { display: grid; gap: 4px; margin: 12px 0 0; padding: 0; list-style: none; counter-reset: home-leaderboard; }
+    .leaderboard-browser-list li {
+      display: grid;
+      grid-template-columns: 22px minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+      min-height: 30px;
+      padding: 5px 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+      color: var(--muted);
+      font-size: 10px;
+    }
+    .leaderboard-browser-list li::before { color: var(--subtle); content: counter(home-leaderboard); counter-increment: home-leaderboard; }
+    .leaderboard-browser-list time { color: var(--foreground); font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .leaderboard-browser-list .empty { display: block; padding: 10px; color: var(--subtle); text-align: center; }
+    .leaderboard-browser-list .empty::before { content: none; }
+    .leaderboard-browser-status { margin: 9px 0 0; color: var(--subtle); font-size: 9px; line-height: 1.45; }
     .controls-dialog {
       width: min(680px, calc(100% - 24px));
       max-height: min(760px, calc(100dvh - 24px));
@@ -713,6 +757,60 @@
     }
     .qol-pause-action:disabled { cursor: not-allowed; opacity: .35; }
     .qol-pause-help { margin: 14px 0 0; color: rgba(255,255,255,.42); font-size: 9px; letter-spacing: .07em; }
+    .run-result {
+      position: absolute;
+      inset: 0;
+      z-index: 7;
+      display: grid;
+      overflow: auto;
+      padding: clamp(12px, 3vw, 28px);
+      place-items: center;
+      background: rgba(0, 0, 0, .78);
+      color: #fff;
+      backdrop-filter: blur(5px);
+    }
+    .run-result-panel {
+      width: min(560px, 100%);
+      max-height: 100%;
+      overflow: auto;
+      padding: clamp(18px, 3vw, 28px);
+      border: 1px solid rgba(255, 255, 255, .24);
+      border-radius: 10px;
+      background: rgba(5, 7, 12, .96);
+      box-shadow: 0 24px 80px rgba(0, 0, 0, .62);
+    }
+    .run-result-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
+    .run-result-kicker { margin: 0 0 5px; color: rgba(255,255,255,.48); font-size: 9px; letter-spacing: .22em; text-transform: uppercase; }
+    .run-result h2 { margin: 0; color: #fff; font-size: clamp(24px, 5vw, 38px); font-style: italic; letter-spacing: .04em; line-height: 1; text-transform: uppercase; }
+    .run-result-class {
+      flex: 0 0 auto;
+      padding: 5px 8px;
+      border: 1px solid rgba(255,255,255,.2);
+      border-radius: 999px;
+      color: rgba(255,255,255,.62);
+      font-size: 8px;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+    }
+    .run-result-class.assisted { border-color: rgba(251,191,36,.48); color: #fcd34d; }
+    .run-result-class.ineligible { border-color: rgba(248,113,113,.48); color: #fca5a5; }
+    .run-result-times { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin: 22px 0 18px; }
+    .run-result-stat { padding: 12px; border: 1px solid rgba(255,255,255,.13); border-radius: 7px; background: rgba(255,255,255,.035); }
+    .run-result-stat span { display: block; margin-bottom: 5px; color: rgba(255,255,255,.42); font-size: 8px; letter-spacing: .14em; text-transform: uppercase; }
+    .run-result-stat strong { color: #fff; font: 600 clamp(18px, 4vw, 28px)/1 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .run-result-board { padding-top: 16px; border-top: 1px solid rgba(255,255,255,.13); }
+    .run-result-board-title { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+    .run-result-board h3 { margin: 0; color: #fff; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+    .run-result-board-status { color: rgba(255,255,255,.42); font-size: 9px; }
+    .run-result-list { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; counter-reset: leaderboard; }
+    .run-result-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; padding: 6px 8px; border-radius: 5px; background: rgba(255,255,255,.035); color: rgba(255,255,255,.65); font-size: 10px; }
+    .run-result-list li::before { color: rgba(255,255,255,.34); content: counter(leaderboard); counter-increment: leaderboard; }
+    .run-result-list time { color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .run-result-submit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 10px; }
+    .run-result-submit input { min-width: 0; height: 38px; padding: 0 10px; border: 1px solid rgba(255,255,255,.18); border-radius: 5px; background: rgba(255,255,255,.05); color: #fff; font-size: 11px; outline: none; }
+    .run-result-submit input:focus { border-color: #fff; }
+    .run-result-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
+    .run-result-note { margin: 9px 0 0; color: rgba(255,255,255,.4); font-size: 9px; line-height: 1.45; }
     pre {
       max-height: 120px;
       margin: 12px 0 0;
@@ -741,7 +839,7 @@
     body.running .site-header { margin: 0 4px 8px; }
     body.running .header-label, body.running .intro, body.running .inputs,
     body.running .panel-heading > div, body.running .privacy-copy, body.running .session-tools-note,
-    body.running #log { display: none; }
+    body.running #log, body.running .leaderboard-browser { display: none; }
     body:not(.running) .in-game-only { display: none; }
     body.running .app-layout { display: block; width: 100%; height: 100%; min-height: 0; overflow: hidden; }
     body.running .game-card { height: 100%; min-height: 0; display: grid; grid-template-rows: auto minmax(0, 1fr); }
@@ -773,6 +871,8 @@
       .bindings-grid { grid-template-columns: 1fr; }
       .feature-groups { grid-template-columns: 1fr; }
       .levels-grid { grid-template-columns: 1fr; }
+      .run-result-times, .run-result-actions { grid-template-columns: 1fr; }
+      .leaderboard-browser { padding: 14px; }
       .controls-footer { align-items: stretch; flex-direction: column; }
       .save-actions { grid-template-columns: 1fr; }
     }
@@ -796,7 +896,7 @@
       <p class="release-line">Version 1.0 · Browser edition</p>
       <h1>Pepsiman,<br>recompiled.</h1>
       <div class="intro-summary">
-        <p class="lede">Play Pepsiman online in a modern browser through a WebAssembly-first static recompilation of the original PlayStation game, with optional visual and quality-of-life features. Bring your own legally obtained PS1 BIOS and Pepsiman disc files.</p>
+        <p class="lede">Play Pepsiman online in a modern browser through a WebAssembly-first static recompilation of the original PlayStation game, with optional visual and quality-of-life features. Bring your own legally obtained Pepsiman disc files; the open-source BIOS is included.</p>
         <img class="redrink-art" src="/icons/icon-512.png" width="512" height="512" alt="Pepsiman RE-DRINK! artwork">
       </div>
       <p class="framework-credit">Built with <a href="https://github.com/mstan/psxrecomp" rel="noopener noreferrer" target="_blank">PSXRecomp</a>. Static recompilation translates the original executable for modern hardware; unlike a full source-code decompilation, it does not recreate the game as a conventional source port.</p>
@@ -818,13 +918,8 @@
           </div>
           <span id="status">Loading WebAssembly…</span>
         </div>
-        <p class="privacy-copy" id="privacy-copy">Your BIOS and disc stay local. Permission handles may be remembered by this browser; file contents are never uploaded.</p>
+        <p class="privacy-copy" id="privacy-copy">Your disc stays local. Permission handles may be remembered by this browser; file contents are never uploaded.</p>
         <div class="inputs">
-          <div class="file-field">PS1 BIOS
-            <button class="file-picker-button" id="bios-picker" type="button">Choose BIOS</button>
-            <span class="file-summary" id="bios-summary">Not selected</span>
-            <input class="fallback-file-input" id="bios" type="file" accept=".bin,.rom,application/octet-stream">
-          </div>
           <div class="file-field">CUE and every BIN track
             <button class="file-picker-button" id="disc-picker" type="button">Choose disc files</button>
             <span class="file-summary" id="disc-summary">Not selected</span>
@@ -847,6 +942,29 @@
         <p class="session-tools-note" id="session-tools-note">Pause, resume, restart, and level select become available after you enter a level.</p>
         <pre id="log" aria-live="polite"></pre>
       </div>
+      <section class="leaderboard-browser" id="leaderboard-browser" aria-labelledby="leaderboard-browser-title">
+        <div class="leaderboard-browser-heading">
+          <div>
+            <p class="section-label">Community times</p>
+            <h2 id="leaderboard-browser-title">Leaderboards</h2>
+          </div>
+          <span class="leaderboard-browser-pb" id="leaderboard-browser-pb">PB —</span>
+        </div>
+        <div class="leaderboard-filters">
+          <label class="leaderboard-filter"><span>Scene</span><select id="leaderboard-level"></select></label>
+          <label class="leaderboard-filter"><span>Run</span><select id="leaderboard-route">
+            <option value="campaign">Campaign</option>
+            <option value="practice">Practice</option>
+          </select></label>
+          <label class="leaderboard-filter"><span>Rules</span><select id="leaderboard-ruleset">
+            <option value="enhanced">Enhanced</option>
+            <option value="original">Original</option>
+            <option value="assisted">Assisted</option>
+          </select></label>
+        </div>
+        <ol class="leaderboard-browser-list" id="leaderboard-browser-list"></ol>
+        <p class="leaderboard-browser-status" id="leaderboard-browser-status" aria-live="polite">Loading top times…</p>
+      </section>
       <div class="screen">
         <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Pepsiman game screen"></canvas>
         <div class="title-logo-frame" id="title-logo-frame" hidden aria-hidden="true">
@@ -867,6 +985,37 @@
             </div>
             <p class="qol-pause-help">D-pad / left stick to move · Cross / A to select · Circle / B to resume</p>
           </div>
+        </div>
+        <div class="run-result" id="run-result" hidden>
+          <section class="run-result-panel" role="dialog" aria-modal="true" aria-labelledby="run-result-title">
+            <div class="run-result-heading">
+              <div>
+                <p class="run-result-kicker" id="run-result-level">Stage clear</p>
+                <h2 id="run-result-title">Scene complete</h2>
+              </div>
+              <span class="run-result-class" id="run-result-class">Enhanced</span>
+            </div>
+            <div class="run-result-times">
+              <div class="run-result-stat"><span>Clear time</span><strong id="run-result-time">--:--.---</strong></div>
+              <div class="run-result-stat"><span>Personal best</span><strong id="run-result-best">--:--.---</strong></div>
+            </div>
+            <section class="run-result-board" aria-labelledby="run-result-board-title">
+              <div class="run-result-board-title">
+                <h3 id="run-result-board-title">Global leaderboard</h3>
+                <span class="run-result-board-status" id="run-result-board-status">Connecting…</span>
+              </div>
+              <ol class="run-result-list" id="run-result-list"></ol>
+              <div class="run-result-submit">
+                <input id="run-result-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Name for the board" aria-label="Leaderboard name">
+                <button class="qol-pause-action" id="run-result-submit" type="button">Submit time</button>
+              </div>
+              <p class="run-result-note" id="run-result-note">The stopwatch uses emulated PlayStation frames, so host stutter does not change the result.</p>
+            </section>
+            <div class="run-result-actions">
+              <button class="qol-pause-action" id="run-result-replay" type="button">Replay scene</button>
+              <button class="qol-pause-action" id="run-result-continue" type="button">Continue</button>
+            </div>
+          </section>
         </div>
       </div>
     </section>
@@ -953,6 +1102,7 @@
         <ul class="feature-list">
           <li><strong>Enhanced pause menu</strong>Resume, restart the current level, select a reached scene, or return to title.</li>
           <li><strong>Persistent level select</strong>Reached scenes remain unlocked in this browser.</li>
+          <li><strong>Scene leaderboards</strong>Guest-frame timing, personal bests, and optional online rankings after every clear.</li>
           <li><strong>Unlimited lives</strong>An optional assist keeps the remaining-life count topped up.</li>
           <li><strong>Focus pause</strong>Optionally freezes play when the tab loses focus.</li>
         </ul>
@@ -960,7 +1110,7 @@
       <section class="feature-group">
         <h3>Speed and response</h3>
         <ul class="feature-list">
-          <li><strong>Fast boot</strong>Skip the PlayStation BIOS shell and enter the game directly.</li>
+          <li><strong>Fast boot</strong>Use the streamlined OpenBIOS startup and enter the game directly.</li>
           <li><strong>Faster CD loading</strong>Conservative 2× data reads preserve CD audio.</li>
           <li><strong>Low-latency input</strong>Controls are sampled again immediately before each presented frame.</li>
           <li><strong>Original and Enhanced presets</strong>Switch between a faithful setup and the recommended modern defaults.</li>
@@ -971,7 +1121,8 @@
         <ul class="feature-list">
           <li><strong>Gamepad and remapping</strong>Standard controllers work automatically; keyboard bindings are fully configurable.</li>
           <li><strong>Real memory cards</strong>Autosave, import, and export both raw PlayStation memory-card slots.</li>
-          <li><strong>Remembered local files</strong>Reconnect saved BIOS and disc permissions without uploading their contents.</li>
+          <li><strong>Bundled OpenBIOS</strong>No proprietary PlayStation BIOS upload is required.</li>
+          <li><strong>Remembered local files</strong>Reconnect saved disc permissions without uploading their contents.</li>
           <li><strong>Offline app and fullscreen</strong>Install the runtime as a PWA and play without browser chrome.</li>
         </ul>
       </section>
@@ -998,9 +1149,7 @@
   </div>
 </dialog>
 <script>
-  const biosInput = document.getElementById('bios');
   const discInput = document.getElementById('disc');
-  const biosPickerButton = document.getElementById('bios-picker');
   const discPickerButton = document.getElementById('disc-picker');
   const startButton = document.getElementById('start');
   const pauseButton = document.getElementById('pause');
@@ -1023,6 +1172,17 @@
   const perfHud = document.getElementById('perf-hud');
   const recompiledMark = document.getElementById('recompiled-mark');
   const qolPause = document.getElementById('qol-pause');
+  const runResult = document.getElementById('run-result');
+  const runResultList = document.getElementById('run-result-list');
+  const runResultStatus = document.getElementById('run-result-board-status');
+  const runResultName = document.getElementById('run-result-name');
+  const runResultSubmit = document.getElementById('run-result-submit');
+  const leaderboardLevelSelect = document.getElementById('leaderboard-level');
+  const leaderboardRouteSelect = document.getElementById('leaderboard-route');
+  const leaderboardRulesetSelect = document.getElementById('leaderboard-ruleset');
+  const leaderboardBrowserList = document.getElementById('leaderboard-browser-list');
+  const leaderboardBrowserStatus = document.getElementById('leaderboard-browser-status');
+  const leaderboardBrowserPb = document.getElementById('leaderboard-browser-pb');
   const themeToggle = document.getElementById('theme-toggle');
   const urlParams = new URLSearchParams(location.search);
   const preloadedTestAssets = urlParams.has('preloaded-test-assets');
@@ -1035,9 +1195,7 @@
   let runtimeReady = false;
   let started = false;
   let aborted = false;
-  let selectedBiosFile = null;
   let selectedDiscFiles = [];
-  let rememberedBiosHandle = null;
   let rememberedDiscHandles = [];
   let rememberedHandlesFound = false;
   let memoryCardsReady = Promise.resolve();
@@ -1065,6 +1223,24 @@
   let observedLevelKey = null;
   let liveLevelKey = null;
   let atFreePlaySelector = false;
+  let timeTrialResultSerial = 0;
+  let visibleRunResult = null;
+  let leaderboardBrowserRequestSerial = 0;
+  let leaderboardPlayerName = localStorage.getItem('repsiman-leaderboard-name-v1') || '';
+  const leaderboardRuns = new Map();
+  const leaderboardPersonalBests = (() => {
+    try { return JSON.parse(localStorage.getItem('repsiman-personal-bests-v1') || '{}'); }
+    catch (_) { return {}; }
+  })();
+  const leaderboardPlayerId = (() => {
+    let id = localStorage.getItem('repsiman-leaderboard-player-v1');
+    if (!/^[a-f0-9-]{16,64}$/i.test(id || '')) {
+      id = globalThis.crypto?.randomUUID?.() ||
+        `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+      localStorage.setItem('repsiman-leaderboard-player-v1', id);
+    }
+    return id;
+  })();
   let previousGamepadButtons = [];
   let previousGamepadNavDirection = 0;
   let gamepadNavRepeatAt = 0;
@@ -1091,7 +1267,7 @@
     }
   };
   const settingDefs = [
-    ['fastBoot', 'Fast boot', 'Skip the PlayStation BIOS shell and start the game directly.', true],
+    ['fastBoot', 'Fast boot', 'Use the streamlined OpenBIOS startup and start the game directly.', true],
     ['fastLoads', 'Faster CD loading', 'Use a conservative 2× data-read speed while preserving CD audio.', true],
     ['lowLatencyInput', 'Low-latency input', 'Sample controls again immediately before presenting each frame.', true],
     ['smooth60', '60 FPS smoothing', 'Insert a visual midpoint between the original 30 FPS gameplay frames. Timing and audio stay original; adds one display frame of latency.', false],
@@ -1102,7 +1278,7 @@
     ['pauseOnBlur', 'Pause when unfocused', 'Freeze the game when this tab is hidden or loses visibility.', false],
     ['smoothOutput', 'Smooth output', 'Use browser filtering instead of crisp nearest-neighbor pixels.', false],
     ['memoryCardAutosave', 'Memory-card autosave', 'Persist both real PS1 memory cards in this browser.', false],
-    ['rememberFiles', 'Remember game files', 'Store permission handles so BIOS and disc selections can be restored.', false]
+    ['rememberFiles', 'Remember game files', 'Store permission handles so disc selections can be restored.', false]
   ];
   const settingsDefaults = {
     ...presetValues.enhanced,
@@ -1534,6 +1710,326 @@
     void storeProgressProfile();
   }
 
+  const TRIAL_FLAG_PAUSED = 1;
+  const TRIAL_FLAG_UNLIMITED_LIVES = 2;
+
+  function trialLevelKey(index) {
+    const level = levelDefinitions[index];
+    return level ? levelKey(level.stage, level.scene) : null;
+  }
+
+  function formatTrialTicks(ticks) {
+    /* NTSC PlayStation VBLANK is 60000/1001 Hz. */
+    const totalMs = Math.max(0, Math.round(Number(ticks || 0) * 1001 / 60));
+    const minutes = Math.floor(totalMs / 60000);
+    const seconds = Math.floor(totalMs / 1000) % 60;
+    const milliseconds = totalMs % 1000;
+    return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}.${String(milliseconds).padStart(3, '0')}`;
+  }
+
+  function trialRuleset(flags = 0) {
+    if (flags & TRIAL_FLAG_UNLIMITED_LIVES) return 'assisted';
+    return activePreset() === 'original' ? 'original' : 'enhanced';
+  }
+
+  function trialBoardKey(level, route, ruleset) {
+    return `${level}:${route}:${ruleset}`;
+  }
+
+  function renderLeaderboardBrowserEntries(entries = []) {
+    if (!entries.length) {
+      const empty = document.createElement('li');
+      empty.className = 'empty';
+      empty.textContent = 'No times yet. Be the first.';
+      leaderboardBrowserList.replaceChildren(empty);
+      return;
+    }
+    leaderboardBrowserList.replaceChildren(...entries.slice(0, 10).map(entry => {
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = entry.name;
+      const time = document.createElement('time');
+      time.textContent = formatTrialTicks(entry.ticks);
+      item.append(name, time);
+      return item;
+    }));
+  }
+
+  async function refreshLeaderboardBrowser() {
+    const requestSerial = ++leaderboardBrowserRequestSerial;
+    const level = leaderboardLevelSelect.value;
+    const route = leaderboardRouteSelect.value;
+    const ruleset = leaderboardRulesetSelect.value;
+    const personalBest = Number(leaderboardPersonalBests[trialBoardKey(level, route, ruleset)]?.ticks || 0);
+    leaderboardBrowserPb.textContent = personalBest ? `PB ${formatTrialTicks(personalBest)}` : 'PB —';
+    leaderboardBrowserStatus.textContent = 'Loading top times…';
+    try {
+      const query = new URLSearchParams({ level, route, ruleset, playerId: leaderboardPlayerId });
+      const response = await fetch(`/api/leaderboard?${query}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Leaderboard unavailable (${response.status})`);
+      const payload = await response.json();
+      if (requestSerial !== leaderboardBrowserRequestSerial) return;
+      const entries = payload.entries || [];
+      renderLeaderboardBrowserEntries(entries);
+      leaderboardBrowserStatus.textContent = payload.playerRank
+        ? `Your best ranks #${payload.playerRank}`
+        : `${entries.length} recorded time${entries.length === 1 ? '' : 's'}`;
+    } catch (_) {
+      if (requestSerial !== leaderboardBrowserRequestSerial) return;
+      renderLeaderboardBrowserEntries();
+      leaderboardBrowserStatus.textContent = 'Online leaderboard unavailable · personal bests still save locally.';
+    }
+  }
+
+  leaderboardLevelSelect.replaceChildren(...levelDefinitions.map(level => {
+    const option = document.createElement('option');
+    option.value = levelKey(level.stage, level.scene);
+    option.textContent = `Stage ${level.stage}-${level.scene}`;
+    return option;
+  }));
+  leaderboardLevelSelect.value = '1-1';
+  for (const select of [leaderboardLevelSelect, leaderboardRouteSelect, leaderboardRulesetSelect]) {
+    select.addEventListener('change', refreshLeaderboardBrowser);
+  }
+  void refreshLeaderboardBrowser();
+
+  function persistPersonalBests() {
+    localStorage.setItem('repsiman-personal-bests-v1', JSON.stringify(leaderboardPersonalBests));
+  }
+
+  async function requestLeaderboardRun(meta) {
+    try {
+      const response = await fetch('/api/runs/start', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          level: meta.level,
+          route: meta.route,
+          ruleset: meta.ruleset,
+          playerId: leaderboardPlayerId
+        })
+      });
+      if (!response.ok) throw new Error(`Leaderboard unavailable (${response.status})`);
+      const payload = await response.json();
+      meta.token = payload.token || null;
+      return meta.token;
+    } catch (error) {
+      meta.onlineError = error;
+      return null;
+    }
+  }
+
+  function syncActiveTimeTrial() {
+    if (!started || typeof Module?._psx_web_time_trial_active_level !== 'function') return;
+    const index = Number(Module._psx_web_time_trial_active_level());
+    const serial = Number(Module?._psx_web_time_trial_run_serial?.() || 0);
+    const level = trialLevelKey(index);
+    if (!level || !serial || leaderboardRuns.has(serial)) return;
+    const meta = {
+      serial,
+      level,
+      route: levelLaunchMode === 'freeplay' ? 'practice' : 'campaign',
+      ruleset: trialRuleset(settings.unlimitedLives ? TRIAL_FLAG_UNLIMITED_LIVES : 0),
+      token: null,
+      onlineError: null
+    };
+    meta.tokenPromise = requestLeaderboardRun(meta);
+    leaderboardRuns.set(serial, meta);
+  }
+
+  function renderLeaderboardEntries(entries = []) {
+    runResultList.replaceChildren(...entries.slice(0, 5).map(entry => {
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = entry.name;
+      const time = document.createElement('time');
+      time.textContent = formatTrialTicks(entry.ticks);
+      item.append(name, time);
+      return item;
+    }));
+  }
+
+  async function refreshLeaderboard(result = visibleRunResult) {
+    if (!result) return;
+    runResultStatus.textContent = 'Loading top times…';
+    try {
+      const query = new URLSearchParams({
+        level: result.level,
+        route: result.route,
+        ruleset: result.ruleset,
+        playerId: leaderboardPlayerId
+      });
+      const response = await fetch(`/api/leaderboard?${query}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Leaderboard unavailable (${response.status})`);
+      const payload = await response.json();
+      if (result !== visibleRunResult) return;
+      renderLeaderboardEntries(payload.entries || []);
+      runResultStatus.textContent = payload.playerRank
+        ? `Your best ranks #${payload.playerRank}`
+        : `${payload.entries?.length || 0} recorded time${payload.entries?.length === 1 ? '' : 's'}`;
+    } catch (_) {
+      if (result !== visibleRunResult) return;
+      renderLeaderboardEntries();
+      runResultStatus.textContent = 'Online board not configured · local PB saved';
+    }
+  }
+
+  function showTimeTrialResult(result) {
+    visibleRunResult = result;
+    if (levelsDialog.open) levelsDialog.close();
+    qolPause.hidden = true;
+    manualPaused = true;
+    applyPauseState();
+    document.getElementById('run-result-level').textContent = `Stage ${result.level} clear`;
+    document.getElementById('run-result-time').textContent = formatTrialTicks(result.ticks);
+    document.getElementById('run-result-best').textContent = result.bestTicks
+      ? formatTrialTicks(result.bestTicks) : '—';
+    const category = document.getElementById('run-result-class');
+    category.className = 'run-result-class';
+    if (!result.eligible) {
+      category.textContent = 'Paused · not ranked';
+      category.classList.add('ineligible');
+    } else if (result.ruleset === 'assisted') {
+      category.textContent = 'Assisted';
+      category.classList.add('assisted');
+    } else {
+      category.textContent = result.ruleset;
+    }
+    runResultName.value = leaderboardPlayerName;
+    runResultName.disabled = !result.eligible;
+    runResultSubmit.disabled = !result.eligible;
+    runResultSubmit.textContent = 'Submit time';
+    document.getElementById('run-result-note').textContent = result.eligible
+      ? 'Timed in emulated PlayStation frames, so host stutter does not change the result.'
+      : 'This attempt used pause. Its time is shown, but it is not saved or submitted.';
+    document.getElementById('run-result-continue').textContent =
+      result.route === 'practice' ? 'Choose scene' : 'Continue';
+    renderLeaderboardEntries();
+    runResult.hidden = false;
+    runResult.querySelector('#run-result-continue').focus();
+    void refreshLeaderboard(result);
+  }
+
+  function consumeTimeTrialResult() {
+    if (!started || typeof Module?._psx_web_time_trial_result_serial !== 'function') return;
+    const serial = Number(Module._psx_web_time_trial_result_serial());
+    if (!serial || serial === timeTrialResultSerial) return;
+    timeTrialResultSerial = serial;
+    const runSerial = Number(Module?._psx_web_time_trial_result_run_serial?.() || 0);
+    const level = trialLevelKey(Number(Module?._psx_web_time_trial_result_level?.() ?? -1));
+    const ticks = Number(Module?._psx_web_time_trial_result_ticks?.() || 0);
+    const flags = Number(Module?._psx_web_time_trial_result_flags?.() || 0);
+    if (!level || ticks <= 0) {
+      Module?._psx_web_time_trial_ack_result?.();
+      return;
+    }
+    const meta = leaderboardRuns.get(runSerial) || {
+      serial: runSerial,
+      level,
+      route: levelLaunchMode === 'freeplay' ? 'practice' : 'campaign',
+      ruleset: trialRuleset(flags),
+      token: null
+    };
+    if (!meta.tokenPromise && !meta.token && !meta.onlineError)
+      meta.tokenPromise = requestLeaderboardRun(meta);
+    const eligible = !(flags & TRIAL_FLAG_PAUSED);
+    const ruleset = flags & TRIAL_FLAG_UNLIMITED_LIVES ? 'assisted' : meta.ruleset;
+    if (ruleset !== meta.ruleset) {
+      meta.ruleset = ruleset;
+      meta.token = null;
+      meta.onlineError = null;
+      meta.tokenPromise = requestLeaderboardRun(meta);
+    }
+    const board = trialBoardKey(level, meta.route, ruleset);
+    const previousBest = Number(leaderboardPersonalBests[board]?.ticks || 0);
+    if (eligible && (!previousBest || ticks < previousBest)) {
+      leaderboardPersonalBests[board] = { ticks, achievedAt: Date.now() };
+      persistPersonalBests();
+      void refreshLeaderboardBrowser();
+    }
+    const bestTicks = Number(leaderboardPersonalBests[board]?.ticks || previousBest || 0);
+    markLevelCompleted(level);
+    showTimeTrialResult({ ...meta, level, ticks, flags, eligible, ruleset, bestTicks });
+  }
+
+  function hideTimeTrialResult() {
+    runResult.hidden = true;
+    visibleRunResult = null;
+  }
+
+  function continueAfterTimeTrial() {
+    const result = visibleRunResult;
+    if (!result) return;
+    hideTimeTrialResult();
+    if (result.route === 'practice' && atFreePlaySelector) {
+      openLevelSelect();
+      return;
+    }
+    Module?._psx_web_time_trial_ack_result?.();
+    manualPaused = false;
+    applyPauseState();
+    canvas.focus();
+  }
+
+  function replayTimeTrialScene() {
+    const result = visibleRunResult;
+    if (!result) return;
+    const [stage, scene] = result.level.split('-').map(Number);
+    hideTimeTrialResult();
+    Module?._psx_web_time_trial_cancel?.();
+    void launchLevel(stage, scene, 'restart');
+  }
+
+  async function submitTimeTrialResult() {
+    const result = visibleRunResult;
+    const name = runResultName.value.trim().replace(/\s+/g, ' ').slice(0, 20);
+    if (!result?.eligible) return;
+    if (!name) {
+      runResultStatus.textContent = 'Enter a name first.';
+      runResultName.focus();
+      return;
+    }
+    leaderboardPlayerName = name;
+    localStorage.setItem('repsiman-leaderboard-name-v1', name);
+    runResultSubmit.disabled = true;
+    runResultSubmit.textContent = 'Submitting…';
+    const token = result.token || await result.tokenPromise;
+    if (!token) {
+      runResultStatus.textContent = 'Online board not configured · local PB saved';
+      runResultSubmit.textContent = 'Submit time';
+      runResultSubmit.disabled = false;
+      return;
+    }
+    try {
+      const response = await fetch('/api/runs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          playerId: leaderboardPlayerId,
+          name,
+          ticks: result.ticks,
+          flags: result.flags,
+          build: 'repsiman-v1'
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || `Submission failed (${response.status})`);
+      runResultStatus.textContent = payload.rank ? `Submitted · rank #${payload.rank}` : 'Time submitted';
+      runResultSubmit.textContent = 'Submitted';
+      await refreshLeaderboard(result);
+      void refreshLeaderboardBrowser();
+    } catch (error) {
+      runResultStatus.textContent = error.message || 'Could not submit this time.';
+      runResultSubmit.textContent = 'Try again';
+      runResultSubmit.disabled = false;
+    }
+  }
+
+  document.getElementById('run-result-continue').addEventListener('click', continueAfterTimeTrial);
+  document.getElementById('run-result-replay').addEventListener('click', replayTimeTrialScene);
+  runResultSubmit.addEventListener('click', submitTimeTrialResult);
+
   function reconcileCampaignProgress(key) {
     const targetIndex = levelDefinitions.findIndex(level =>
       levelKey(level.stage, level.scene) === key);
@@ -1778,25 +2274,9 @@
     canvas.focus();
   }
 
-  function showCompletedLevelSelect(completedKey) {
-    atFreePlaySelector = true;
-    transitionIntent = 'selector';
-    pendingLevelKey = null;
-    sendGameInput(NEUTRAL_WORD, 8);
-    manualPaused = true;
-    applyPauseState();
-    levelsReturnToPause = false;
-    renderLevelSelect();
-    document.getElementById('levels-status').textContent =
-      `Stage ${completedKey} complete · the next scene is now unlocked.`;
-    if (!levelsDialog.open) levelsDialog.showModal();
-    capturePauseGamepadState();
-    requestAnimationFrame(() =>
-      levelsDialog.querySelector('.level-button.current:not(:disabled), .level-button:not(:disabled)')?.focus());
-  }
-
   async function leaveCompletedLevelSelect() {
     if (!atFreePlaySelector || pauseTransitionActive) return;
+    Module?._psx_web_time_trial_cancel?.();
     beginPauseTransition('Returning to title…');
     Module?._psx_web_pepsiman_leave_selector?.();
     await waitForPepsimanState(inMainMenu, 6000);
@@ -1887,14 +2367,20 @@
 
     transitionIntent = intent;
     pendingLevelKey = targetKey;
+    Module?._psx_web_time_trial_cancel?.();
     const launchingFromSelector = atFreePlaySelector;
     atFreePlaySelector = false;
     levelsReturnToPause = false;
     beginPauseTransition(intent === 'restart' ? 'Restarting level…' : `Loading Stage ${stage}-${scene}…`);
     if (levelsDialog.open) levelsDialog.close();
 
+    const previousLaunchMode = levelLaunchMode;
     try {
       const route = launchingFromSelector ? 2 : levelLaunchMode === 'freeplay' ? 1 : 0;
+      /* The guest can begin presenting the selected scene before the browser's
+       * 100 ms transition poll observes status 3. Publish the destination mode
+       * now so the run ticket cannot be misfiled as a campaign attempt. */
+      levelLaunchMode = 'freeplay';
       if (!Module._psx_web_pepsiman_request_level(stage - 1, scene, route))
         throw new Error('Another level transition is already running.');
       if (await waitForLevelAction() !== 3)
@@ -1910,6 +2396,7 @@
         ? `Restarted Stage ${targetKey}.`
         : `Loaded Stage ${targetKey}.`);
     } catch (error) {
+      levelLaunchMode = previousLaunchMode;
       transitionIntent = null;
       pendingLevelKey = null;
       screenNode.dataset.levelAction = 'failed';
@@ -1931,6 +2418,7 @@
 
     transitionIntent = 'title';
     pendingLevelKey = null;
+    Module?._psx_web_time_trial_cancel?.();
     beginPauseTransition('Returning to title…');
     if (!Module._psx_web_return_to_title()) {
       transitionIntent = null;
@@ -1978,6 +2466,32 @@
   });
 
   window.addEventListener('keydown', event => {
+    if (!runResult.hidden) {
+      if (event.target === runResultName) {
+        if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+          void submitTimeTrialResult();
+          event.preventDefault();
+        }
+        return;
+      }
+      const actions = [...runResult.querySelectorAll('button:not(:disabled)')];
+      const current = Math.max(0, actions.indexOf(document.activeElement));
+      if (['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'].includes(event.code)) {
+        const delta = event.code === 'ArrowUp' || event.code === 'ArrowLeft' ? -1 : 1;
+        actions[(current + delta + actions.length) % actions.length]?.focus();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      } else if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+        actions[current]?.click();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      } else if (event.code === 'Escape') {
+        continueAfterTimeTrial();
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+      return;
+    }
     if (levelsDialog.open) {
       const levels = [...levelsDialog.querySelectorAll('.level-button:not(:disabled)')];
       const current = Math.max(0, levels.indexOf(document.activeElement));
@@ -2032,7 +2546,10 @@
     if (!transitionIntent && !atFreePlaySelector && observedLevelKey && inFreePlaySelector()) {
       const completedKey = observedLevelKey;
       markLevelCompleted(completedKey);
-      showCompletedLevelSelect(completedKey);
+      atFreePlaySelector = true;
+      transitionIntent = 'selector';
+      pendingLevelKey = null;
+      observedLevelKey = null;
     }
   }
 
@@ -2047,6 +2564,8 @@
     else if (currentCddaTrack === 7 || currentCddaTrack === 8) gameplaySessionActive = false;
     syncLiveLevelIdentity();
     observeLevelProgress();
+    syncActiveTimeTrial();
+    consumeTimeTrialResult();
     if (started && typeof Module?._psx_web_consume_pause_request === 'function' &&
         Module._psx_web_consume_pause_request())
       openEnhancedPause();
@@ -2054,6 +2573,11 @@
     screenNode.dataset.gameplayActive = gameplaySessionActive ? 'true' : 'false';
     if (started && typeof Module?._psx_web_pepsiman_get_lives === 'function')
       screenNode.dataset.lives = String(Module._psx_web_pepsiman_get_lives());
+    if (started && typeof Module?._psx_web_time_trial_active_level === 'function') {
+      screenNode.dataset.trialLevel = String(Module._psx_web_time_trial_active_level());
+      screenNode.dataset.trialTicks = String(Math.trunc(Module?._psx_web_time_trial_active_ticks?.() || 0));
+      screenNode.dataset.trialRun = String(Module?._psx_web_time_trial_run_serial?.() || 0);
+    }
     if (started && typeof Module?._psx_web_geometry_correction_hits === 'function')
       screenNode.dataset.geometryHits = String(Module._psx_web_geometry_correction_hits());
     if (started && typeof Module?._psx_web_texture_correction_hits === 'function')
@@ -2096,7 +2620,7 @@
         typeof Module?._psx_web_set_input_override === 'function') {
       let word = browserGamepadsToPsxWord(browserGamepads.pads);
       if (gameplayActive()) word |= 0x0008;
-      if (levelsDialog.open || !qolPause.hidden || pauseTransitionActive)
+      if (levelsDialog.open || !qolPause.hidden || !runResult.hidden || pauseTransitionActive)
         word = NEUTRAL_WORD;
       Module._psx_web_set_input_override(word, 2);
       screenNode.dataset.gamepadBridge = 'active';
@@ -2104,7 +2628,14 @@
       screenNode.dataset.gamepadBridge = 'inactive';
     }
 
-    if (levelsDialog.open) {
+    if (!runResult.hidden) {
+      const actions = [...runResult.querySelectorAll('button:not(:disabled)')];
+      const current = Math.max(0, actions.indexOf(document.activeElement));
+      if (navStep)
+        actions[(current + navStep + actions.length) % actions.length]?.focus();
+      if (pressed(0)) actions[current]?.click();
+      if (pressed(1) || pressed(9)) continueAfterTimeTrial();
+    } else if (levelsDialog.open) {
       const levels = [...levelsDialog.querySelectorAll('.level-button:not(:disabled)')];
       const current = Math.max(0, levels.indexOf(document.activeElement));
       if (navStep) levels[(current + navStep + levels.length) % levels.length]?.focus();
@@ -2139,6 +2670,13 @@
   } else if (uiPreview === 'title') {
     titleLogoFrame.hidden = false;
     recompiledMark.hidden = false;
+  } else if (uiPreview === 'result') {
+    setRunning(true);
+    showTimeTrialResult({
+      level: '1-1', route: 'campaign', ruleset: 'enhanced', ticks: 5123,
+      flags: 0, eligible: true, bestTicks: 4988, token: null,
+      tokenPromise: Promise.resolve(null)
+    });
   } else {
     requestAnimationFrame(pollGameUi);
   }
@@ -2260,25 +2798,19 @@
     setInterval(updatePerfHud, 1000);
   }
 
-  function currentBiosFile() {
-    return selectedBiosFile || biosInput.files?.[0] || null;
-  }
-
   function currentDiscFiles() {
     return selectedDiscFiles.length ? selectedDiscFiles : [...(discInput.files || [])];
   }
 
   function selectedAssetState() {
-    const bios = currentBiosFile();
     const files = currentDiscFiles();
     const cue = files.find(file => file.name.toLowerCase().endsWith('.cue')) || null;
     const bins = files.filter(file => file.name.toLowerCase().endsWith('.bin'));
-    return { bios, files, cue, bins, valid: Boolean(bios && cue && bins.length) };
+    return { files, cue, bins, valid: Boolean(cue && bins.length) };
   }
 
   function updateFileSummaries() {
-    const { bios, cue, bins } = selectedAssetState();
-    document.getElementById('bios-summary').textContent = bios ? bios.name : 'Not selected';
+    const { cue, bins } = selectedAssetState();
     document.getElementById('disc-summary').textContent = cue
       ? `${cue.name} · ${bins.length} BIN track${bins.length === 1 ? '' : 's'}`
       : bins.length
@@ -2287,10 +2819,9 @@
   }
 
   function selectionStatus() {
-    const { bios, cue, bins, valid } = selectedAssetState();
-    if (valid) return 'Ready — game files selected.';
+    const { cue, bins, valid } = selectedAssetState();
+    if (valid) return 'Ready — disc files selected. OpenBIOS is included.';
     if (rememberedHandlesFound) return 'Saved game files found — press Start to reconnect and play.';
-    if (!bios) return 'Select your PS1 BIOS.';
     if (!cue) return 'Select the CUE and every BIN track together.';
     if (!bins.length) return 'The selected disc needs at least one BIN track.';
     return 'Select your game files.';
@@ -2327,12 +2858,11 @@
   }
 
   async function saveRememberedHandles() {
-    if (!settings.rememberFiles || (!rememberedBiosHandle && !rememberedDiscHandles.length)) return;
+    if (!settings.rememberFiles || !rememberedDiscHandles.length) return;
     const db = await openAssetDatabase();
     try {
       await new Promise((resolve, reject) => {
         const request = db.transaction('handles', 'readwrite').objectStore('handles').put({
-          bios: rememberedBiosHandle,
           disc: rememberedDiscHandles
         }, 'game-files');
         request.onsuccess = () => resolve();
@@ -2358,7 +2888,6 @@
     } catch (error) {
       console.warn('Could not forget saved file handles:', error);
     }
-    rememberedBiosHandle = null;
     rememberedDiscHandles = [];
     rememberedHandlesFound = false;
     updateStart();
@@ -2377,49 +2906,23 @@
     if (!settings.rememberFiles) return false;
     try {
       const stored = await readRememberedHandles();
-      rememberedBiosHandle = stored?.bios?.kind === 'file' ? stored.bios : null;
       rememberedDiscHandles = Array.isArray(stored?.disc)
         ? stored.disc.filter(handle => handle?.kind === 'file')
         : [];
-      rememberedHandlesFound = Boolean(rememberedBiosHandle && rememberedDiscHandles.length);
+      rememberedHandlesFound = Boolean(rememberedDiscHandles.length);
       if (!rememberedHandlesFound) return false;
 
-      const handles = [rememberedBiosHandle, ...rememberedDiscHandles];
-      const permissions = await Promise.all(handles.map(handle => handlePermission(handle, requestAccess)));
+      const permissions = await Promise.all(
+        rememberedDiscHandles.map(handle => handlePermission(handle, requestAccess))
+      );
       if (permissions.some(granted => !granted)) return false;
 
-      selectedBiosFile = await rememberedBiosHandle.getFile();
       selectedDiscFiles = await Promise.all(rememberedDiscHandles.map(handle => handle.getFile()));
       updateStart();
       return selectedAssetState().valid;
     } catch (error) {
       console.warn('Could not restore remembered game files:', error);
       return false;
-    }
-  }
-
-  async function pickBiosFile() {
-    if (typeof window.showOpenFilePicker !== 'function') {
-      biosInput.click();
-      return;
-    }
-    try {
-      const [handle] = await window.showOpenFilePicker({
-        multiple: false,
-        types: [{ description: 'PlayStation BIOS', accept: { 'application/octet-stream': ['.bin', '.rom'] } }]
-      });
-      rememberedBiosHandle = handle;
-      selectedBiosFile = await handle.getFile();
-      rememberedHandlesFound = Boolean(rememberedDiscHandles.length);
-      updateStart();
-      setStatus(selectionStatus());
-      try { await saveRememberedHandles(); }
-      catch (error) { console.warn('Could not remember the BIOS handle:', error); }
-    } catch (error) {
-      if (error?.name !== 'AbortError') {
-        log(error?.stack || String(error));
-        setStatus('Could not select the BIOS — see the log.');
-      }
     }
   }
 
@@ -2435,7 +2938,7 @@
       });
       rememberedDiscHandles = handles;
       selectedDiscFiles = await Promise.all(handles.map(handle => handle.getFile()));
-      rememberedHandlesFound = Boolean(rememberedBiosHandle && rememberedDiscHandles.length);
+      rememberedHandlesFound = Boolean(rememberedDiscHandles.length);
       updateStart();
       setStatus(selectionStatus());
       try { await saveRememberedHandles(); }
@@ -2448,22 +2951,13 @@
     }
   }
 
-  function useFallbackBiosSelection() {
-    selectedBiosFile = biosInput.files?.[0] || null;
-    updateStart();
-    if (runtimeReady) setStatus(selectionStatus());
-  }
-
   function useFallbackDiscSelection() {
     selectedDiscFiles = [...(discInput.files || [])];
     updateStart();
     if (runtimeReady) setStatus(selectionStatus());
   }
 
-  biosPickerButton.addEventListener('click', pickBiosFile);
   discPickerButton.addEventListener('click', pickDiscFiles);
-  biosInput.addEventListener('input', useFallbackBiosSelection);
-  biosInput.addEventListener('change', useFallbackBiosSelection);
   discInput.addEventListener('input', useFallbackDiscSelection);
   discInput.addEventListener('change', useFallbackDiscSelection);
 
@@ -2658,7 +3152,7 @@
   if (remoteAssetsToken) {
     document.body.classList.add('remote-assets');
     document.getElementById('privacy-copy').textContent =
-      'Private LAN test — BIOS and disc data will be read from your Mac.';
+      'Private LAN test — disc data will be read from your Mac. OpenBIOS is bundled.';
   }
 
   testStartButton.addEventListener('click', () => {
@@ -2735,14 +3229,27 @@
     Module.FS.writeFile(targetPath, bytes, { canOwn: true });
     return bytes.byteLength;
   }
+  async function installBundledOpenBios() {
+    const fileName = settings.fastBoot ? 'openbios-fastboot.bin' : 'openbios.bin';
+    const targetPath = `/bios/${fileName}`;
+    setStatus(`Loading bundled ${settings.fastBoot ? 'fast ' : ''}OpenBIOS…`);
+    const response = await fetch(new URL(fileName, document.baseURI));
+    if (!response.ok)
+      throw new Error(`Bundled OpenBIOS request failed (${response.status}): ${fileName}`);
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    if (bytes.byteLength !== 512 * 1024)
+      throw new Error(`Bundled OpenBIOS has an invalid size: ${bytes.byteLength} bytes`);
+    Module.FS.mkdirTree('/bios');
+    Module.FS.writeFile(targetPath, bytes, { canOwn: true });
+    return targetPath;
+  }
   function makeGameConfig(cueName) {
-    const fastBoot = preloadedTestAssets || settings.fastBoot ? 'true' : 'false';
     const autoSkipFmv = preloadedTestAssets || remoteAssetsToken ? 'true' : 'false';
     const discSpeed = settings.fastLoads ? '2x' : '1x';
     const lowLatencyInput = settings.lowLatencyInput ? 'true' : 'false';
     const supersampling = settings.geometryCorrection ? 2 : 1;
     const aspectRatio = settings.widescreen ? '16:9' : '4:3';
-    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "${discSpeed}"\nbios_hle = ${fastBoot}\nfast_boot = ${fastBoot}\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = ${supersampling}\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "${aspectRatio}"\nlow_latency_input = ${lowLatencyInput}\nauto_skip_fmv = ${autoSkipFmv}\n\n[widescreen]\noffer = true\noffer_ultrawide = false\ngte_game_mode = true\nnative_wide = false\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
+    return `[game]\nname = "Pepsiman"\nid = "SLPS-01762"\nexe = "game/SLPS_017.62"\ndisc = "/game/disc/${tomlString(cueName)}"\nload_address = "0x80010000"\nentry_pc = "0x80042C58"\ntext_size = "0x00085800"\nstack_base = "0x801FFFF0"\n\n[recompiler]\nseeds = "seeds/functions.txt"\nstrict = true\nout_dir = "generated"\n\n[runtime]\ndebug_port = 0\nwindow_title = "Pepsiman Recompiled — Web"\nmemcard_dir = "/saves"\ndisc_speed = "${discSpeed}"\nbios_hle = false\nfast_boot = false\noverlay_cache = false\noverlay_backend = "interp"\nturbo_loads = false\nhle_scheduler = true\n\n[video]\nrenderer = "software"\nsupersampling = ${supersampling}\nantialiasing = false\ntexture_filtering = "nearest"\naspect_ratio = "${aspectRatio}"\nlow_latency_input = ${lowLatencyInput}\nauto_skip_fmv = ${autoSkipFmv}\n\n[widescreen]\noffer = true\noffer_ultrawide = false\ngte_game_mode = true\nnative_wide = false\n\n[controller]\ndefault_analog = false\ndeadzone = 12000\n`;
   }
 
   function finishGameLaunch() {
@@ -2754,6 +3261,10 @@
     transitionIntent = null;
     observedLevelKey = null;
     atFreePlaySelector = false;
+    timeTrialResultSerial = 0;
+    visibleRunResult = null;
+    leaderboardRuns.clear();
+    runResult.hidden = true;
     applyOutputAspect();
     pauseButton.disabled = true;
     levelsButton.disabled = true;
@@ -2826,13 +3337,14 @@
       await progressReady;
       await memoryCardsReady;
       Module.FS.writeFile('/keybinds.ini', keybindsIni());
+      const biosPath = await installBundledOpenBios();
       if (preloadedTestAssets) {
         const cueName = 'Pepsiman (Japan).cue';
         Module.FS.writeFile('/game.toml', makeGameConfig(cueName));
         setStatus('Starting private preloaded test build…');
         launchGame([
           '--game', '/game.toml',
-          '--bios', '/bios/SCPH1001.BIN',
+          '--bios', biosPath,
           '--disc', `/game/disc/${cueName}`,
           '--renderer', 'software',
           '--no-launcher'
@@ -2852,9 +3364,7 @@
           'Pepsiman (Japan) (Track 7).bin',
           'Pepsiman (Japan) (Track 8).bin'
         ];
-        Module.FS.mkdirTree('/bios');
         Module.FS.mkdirTree('/game/disc');
-        await installRemoteFile('SCPH1001.bin', '/bios/SCPH1001.BIN');
         let loaded = 0;
         for (const name of discNames) {
           loaded += await installRemoteFile(`PEPSIMAN/${name}`, `/game/disc/${name}`);
@@ -2864,19 +3374,16 @@
         setStatus('Starting game…');
         launchGame([
           '--game', '/game.toml',
-          '--bios', '/bios/SCPH1001.BIN',
+          '--bios', biosPath,
           '--disc', `/game/disc/${cueName}`,
           '--renderer', 'software',
           '--no-launcher'
         ]);
         return;
       }
-      const bios = currentBiosFile();
       const discFiles = currentDiscFiles();
       const cue = discFiles.find(file => file.name.toLowerCase().endsWith('.cue'));
-      Module.FS.mkdirTree('/bios');
       Module.FS.mkdirTree('/game/disc');
-      await installFile(bios, '/bios/SCPH1001.BIN');
       let loaded = 0;
       for (const file of discFiles) {
         await installFile(file, `/game/disc/${file.name}`);
@@ -2887,7 +3394,7 @@
       setStatus('Preparing game…');
       launchGame([
         '--game', '/game.toml',
-        '--bios', '/bios/SCPH1001.BIN',
+        '--bios', biosPath,
         '--disc', `/game/disc/${cue.name}`,
         '--renderer', 'software',
         '--no-launcher'
