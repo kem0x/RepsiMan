@@ -344,13 +344,40 @@
     .action-button.secondary:hover { border-color: var(--border-hover); color: var(--foreground); }
     .action-button:disabled { cursor: not-allowed; opacity: .35; }
     .leaderboard-browser {
-      padding: 16px 18px 18px;
       border-top: 1px solid var(--border);
       background: color-mix(in srgb, var(--surface-soft) 48%, var(--surface));
     }
-    .leaderboard-browser-heading { display: flex; align-items: end; justify-content: space-between; gap: 16px; }
+    .leaderboard-browser-heading {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      min-height: 68px;
+      padding: 14px 18px;
+      cursor: pointer;
+      list-style: none;
+      transition: background-color .18s ease;
+    }
+    .leaderboard-browser-heading::-webkit-details-marker { display: none; }
+    .leaderboard-browser-heading::after {
+      width: 22px;
+      flex: 0 0 auto;
+      color: var(--subtle);
+      content: "+";
+      font: 20px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-align: center;
+    }
+    .leaderboard-browser[open] .leaderboard-browser-heading::after { content: "−"; }
+    .leaderboard-browser-heading:hover { background: color-mix(in srgb, var(--surface) 54%, transparent); }
+    .leaderboard-browser-heading:focus-visible { outline: 2px solid var(--foreground); outline-offset: -2px; }
     .leaderboard-browser-heading h2 { font-size: 14px; }
-    .leaderboard-browser-pb { color: var(--muted); font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .leaderboard-browser-pb {
+      margin-left: auto;
+      color: var(--muted);
+      font: 11px/1 ui-monospace, SFMono-Regular, Menlo, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+    .leaderboard-browser-body { padding: 0 18px 18px; border-top: 1px solid var(--border); }
     .leaderboard-filters { display: grid; grid-template-columns: 1.1fr 1fr 1fr; gap: 7px; margin-top: 13px; }
     .leaderboard-filter { display: grid; gap: 5px; color: var(--subtle); font-size: 8px; letter-spacing: .12em; text-transform: uppercase; }
     .leaderboard-filter select {
@@ -386,8 +413,7 @@
     .leaderboard-browser-list .empty { display: block; padding: 10px; color: var(--subtle); text-align: center; }
     .leaderboard-browser-list .empty::before { content: none; }
     .leaderboard-browser-status { margin: 9px 0 0; color: var(--subtle); font-size: 9px; line-height: 1.45; }
-    .leaderboard-browser-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
-    .leaderboard-load {
+    .leaderboard-recovery-button {
       min-height: 30px;
       padding: 0 10px;
       border: 1px solid var(--border);
@@ -396,7 +422,7 @@
       color: var(--muted);
       font-size: 9px;
     }
-    .leaderboard-load:hover { border-color: var(--border-hover); color: var(--foreground); }
+    .leaderboard-recovery-button:hover { border-color: var(--border-hover); color: var(--foreground); }
     .leaderboard-recovery {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -905,7 +931,8 @@
       .feature-groups { grid-template-columns: 1fr; }
       .levels-grid { grid-template-columns: 1fr; }
       .run-result-times, .run-result-actions { grid-template-columns: 1fr; }
-      .leaderboard-browser { padding: 14px; }
+      .leaderboard-browser-heading { padding-inline: 14px; }
+      .leaderboard-browser-body { padding-inline: 14px; }
       .controls-footer { align-items: stretch; flex-direction: column; }
       .save-actions { grid-template-columns: 1fr; }
     }
@@ -975,37 +1002,36 @@
         <p class="session-tools-note" id="session-tools-note">Pause, resume, restart, and level select become available after you enter a level.</p>
         <pre id="log" aria-live="polite"></pre>
       </div>
-      <section class="leaderboard-browser" id="leaderboard-browser" aria-labelledby="leaderboard-browser-title">
-        <div class="leaderboard-browser-heading">
+      <details class="leaderboard-browser" id="leaderboard-browser">
+        <summary class="leaderboard-browser-heading">
           <div>
             <p class="section-label">Community times</p>
             <h2 id="leaderboard-browser-title">Leaderboards</h2>
           </div>
           <span class="leaderboard-browser-pb" id="leaderboard-browser-pb">PB —</span>
+        </summary>
+        <div class="leaderboard-browser-body">
+          <div class="leaderboard-filters">
+            <label class="leaderboard-filter"><span>Scene</span><select id="leaderboard-level"></select></label>
+            <label class="leaderboard-filter"><span>Run</span><select id="leaderboard-route">
+              <option value="campaign">Campaign</option>
+              <option value="practice">Practice</option>
+            </select></label>
+            <label class="leaderboard-filter"><span>Rules</span><select id="leaderboard-ruleset">
+              <option value="enhanced">Enhanced</option>
+              <option value="original">Original</option>
+              <option value="assisted">Assisted</option>
+            </select></label>
+          </div>
+          <ol class="leaderboard-browser-list" id="leaderboard-browser-list"></ol>
+          <p class="leaderboard-browser-status" id="leaderboard-browser-status" aria-live="polite">Open to load community times.</p>
+          <form class="leaderboard-recovery" id="leaderboard-recovery" hidden>
+            <input id="leaderboard-recovery-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Name for recovered times" aria-label="Name for recovered times">
+            <button class="leaderboard-recovery-button" id="leaderboard-recovery-submit" type="submit">Recover saved PBs</button>
+            <p class="leaderboard-recovery-status" id="leaderboard-recovery-status">Imports the personal bests saved in this browser during the leaderboard outage. Recovered entries are labeled.</p>
+          </form>
         </div>
-        <div class="leaderboard-filters">
-          <label class="leaderboard-filter"><span>Scene</span><select id="leaderboard-level"></select></label>
-          <label class="leaderboard-filter"><span>Run</span><select id="leaderboard-route">
-            <option value="campaign">Campaign</option>
-            <option value="practice">Practice</option>
-          </select></label>
-          <label class="leaderboard-filter"><span>Rules</span><select id="leaderboard-ruleset">
-            <option value="enhanced">Enhanced</option>
-            <option value="original">Original</option>
-            <option value="assisted">Assisted</option>
-          </select></label>
-        </div>
-        <ol class="leaderboard-browser-list" id="leaderboard-browser-list"></ol>
-        <p class="leaderboard-browser-status" id="leaderboard-browser-status" aria-live="polite">Choose a board to load community times.</p>
-        <div class="leaderboard-browser-actions">
-          <button class="leaderboard-load" id="leaderboard-load" type="button">Load rankings</button>
-        </div>
-        <form class="leaderboard-recovery" id="leaderboard-recovery" hidden>
-          <input id="leaderboard-recovery-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Name for recovered times" aria-label="Name for recovered times">
-          <button class="leaderboard-load" id="leaderboard-recovery-submit" type="submit">Recover saved PBs</button>
-          <p class="leaderboard-recovery-status" id="leaderboard-recovery-status">Imports the personal bests saved in this browser during the leaderboard outage. Recovered entries are labeled.</p>
-        </form>
-      </section>
+      </details>
       <div class="screen">
         <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Pepsiman game screen"></canvas>
         <div class="title-logo-frame" id="title-logo-frame" hidden aria-hidden="true">
@@ -1224,7 +1250,7 @@
   const leaderboardBrowserList = document.getElementById('leaderboard-browser-list');
   const leaderboardBrowserStatus = document.getElementById('leaderboard-browser-status');
   const leaderboardBrowserPb = document.getElementById('leaderboard-browser-pb');
-  const leaderboardLoad = document.getElementById('leaderboard-load');
+  const leaderboardBrowser = document.getElementById('leaderboard-browser');
   const leaderboardRecovery = document.getElementById('leaderboard-recovery');
   const leaderboardRecoveryName = document.getElementById('leaderboard-recovery-name');
   const leaderboardRecoverySubmit = document.getElementById('leaderboard-recovery-submit');
@@ -1807,8 +1833,7 @@
     const level = leaderboardLevelSelect.value;
     const route = leaderboardRouteSelect.value;
     const ruleset = leaderboardRulesetSelect.value;
-    const personalBest = Number(leaderboardPersonalBests[trialBoardKey(level, route, ruleset)]?.ticks || 0);
-    leaderboardBrowserPb.textContent = personalBest ? `PB ${formatTrialTicks(personalBest)}` : 'PB —';
+    syncLeaderboardPersonalBestLabel();
     leaderboardBrowserStatus.textContent = 'Loading top times…';
     try {
       const query = new URLSearchParams({ level, route, ruleset, playerId: leaderboardPlayerId });
@@ -1828,6 +1853,16 @@
     }
   }
 
+  function syncLeaderboardPersonalBestLabel() {
+    const board = trialBoardKey(
+      leaderboardLevelSelect.value,
+      leaderboardRouteSelect.value,
+      leaderboardRulesetSelect.value
+    );
+    const ticks = Number(leaderboardPersonalBests[board]?.ticks || 0);
+    leaderboardBrowserPb.textContent = ticks ? `PB ${formatTrialTicks(ticks)}` : 'PB —';
+  }
+
   leaderboardLevelSelect.replaceChildren(...levelDefinitions.map(level => {
     const option = document.createElement('option');
     option.value = levelKey(level.stage, level.scene);
@@ -1841,17 +1876,15 @@
         void refreshLeaderboardBrowser();
         return;
       }
-      const board = trialBoardKey(
-        leaderboardLevelSelect.value,
-        leaderboardRouteSelect.value,
-        leaderboardRulesetSelect.value
-      );
-      const ticks = Number(leaderboardPersonalBests[board]?.ticks || 0);
-      leaderboardBrowserPb.textContent = ticks ? `PB ${formatTrialTicks(ticks)}` : 'PB —';
+      syncLeaderboardPersonalBestLabel();
     });
   }
-  renderLeaderboardBrowserEntries([], 'Load rankings to see community times.');
-  leaderboardLoad.addEventListener('click', () => void refreshLeaderboardBrowser());
+  syncLeaderboardPersonalBestLabel();
+  renderLeaderboardBrowserEntries([], 'Choose a board to see community times.');
+  leaderboardBrowser.addEventListener('toggle', () => {
+    if (leaderboardBrowser.open && leaderboardBrowserList.dataset.loaded !== 'true')
+      void refreshLeaderboardBrowser();
+  });
 
   function persistPersonalBests() {
     localStorage.setItem('repsiman-personal-bests-v1', JSON.stringify(leaderboardPersonalBests));
@@ -1870,8 +1903,10 @@
     return [{ level, route, ruleset, ticks, achievedAt }];
   });
   leaderboardRecoveryName.value = leaderboardPlayerName;
-  leaderboardRecovery.hidden = !recoveryEntries.length ||
-    localStorage.getItem('repsiman-leaderboard-recovery-v1') === 'done';
+  const recoveryPending = recoveryEntries.length > 0 &&
+    localStorage.getItem('repsiman-leaderboard-recovery-v1') !== 'done';
+  leaderboardRecovery.hidden = !recoveryPending;
+  if (recoveryPending) leaderboardBrowser.open = true;
   leaderboardRecovery.addEventListener('submit', async event => {
     event.preventDefault();
     const name = leaderboardRecoveryName.value.trim().replace(/\s+/g, ' ').slice(0, 20);
