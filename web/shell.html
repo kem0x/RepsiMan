@@ -77,7 +77,7 @@
           "Gamepad support and keyboard remapping",
           "Persistent PlayStation memory cards",
           "Enhanced pause menu and level select",
-          "Per-scene personal bests stored in the browser",
+          "Per-scene personal bests and online leaderboards",
           "Offline progressive web app support"
         ]
       }
@@ -386,6 +386,39 @@
     .leaderboard-browser-list .empty { display: block; padding: 10px; color: var(--subtle); text-align: center; }
     .leaderboard-browser-list .empty::before { content: none; }
     .leaderboard-browser-status { margin: 9px 0 0; color: var(--subtle); font-size: 9px; line-height: 1.45; }
+    .leaderboard-browser-actions { display: flex; justify-content: flex-end; margin-top: 10px; }
+    .leaderboard-load {
+      min-height: 30px;
+      padding: 0 10px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 9px;
+    }
+    .leaderboard-load:hover { border-color: var(--border-hover); color: var(--foreground); }
+    .leaderboard-recovery {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 7px;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    .leaderboard-recovery[hidden] { display: none; }
+    .leaderboard-recovery input {
+      min-width: 0;
+      height: 34px;
+      padding: 0 8px;
+      border: 1px solid var(--border);
+      border-radius: 5px;
+      background: var(--surface);
+      color: var(--foreground);
+      font-size: 10px;
+      outline: none;
+    }
+    .leaderboard-recovery input:focus { border-color: var(--border-hover); }
+    .leaderboard-recovery-status { grid-column: 1 / -1; margin: 0; color: var(--subtle); font-size: 9px; line-height: 1.45; }
     .controls-dialog {
       width: min(680px, calc(100% - 24px));
       max-height: min(760px, calc(100dvh - 24px));
@@ -806,6 +839,9 @@
     .run-result-list li { display: grid; grid-template-columns: 24px minmax(0, 1fr) auto; gap: 8px; padding: 6px 8px; border-radius: 5px; background: rgba(255,255,255,.035); color: rgba(255,255,255,.65); font-size: 10px; }
     .run-result-list li::before { color: rgba(255,255,255,.34); content: counter(leaderboard); counter-increment: leaderboard; }
     .run-result-list time { color: #fff; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-variant-numeric: tabular-nums; }
+    .run-result-submit { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; margin-top: 10px; }
+    .run-result-submit input { min-width: 0; height: 38px; padding: 0 10px; border: 1px solid rgba(255,255,255,.18); border-radius: 5px; background: rgba(255,255,255,.05); color: #fff; font-size: 11px; outline: none; }
+    .run-result-submit input:focus { border-color: #fff; }
     .run-result-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 18px; }
     .run-result-note { margin: 9px 0 0; color: rgba(255,255,255,.4); font-size: 9px; line-height: 1.45; }
     pre {
@@ -942,8 +978,8 @@
       <section class="leaderboard-browser" id="leaderboard-browser" aria-labelledby="leaderboard-browser-title">
         <div class="leaderboard-browser-heading">
           <div>
-            <p class="section-label">Local times</p>
-            <h2 id="leaderboard-browser-title">Personal bests</h2>
+            <p class="section-label">Community times</p>
+            <h2 id="leaderboard-browser-title">Leaderboards</h2>
           </div>
           <span class="leaderboard-browser-pb" id="leaderboard-browser-pb">PB —</span>
         </div>
@@ -960,7 +996,15 @@
           </select></label>
         </div>
         <ol class="leaderboard-browser-list" id="leaderboard-browser-list"></ol>
-        <p class="leaderboard-browser-status" id="leaderboard-browser-status" aria-live="polite">Stored only in this browser.</p>
+        <p class="leaderboard-browser-status" id="leaderboard-browser-status" aria-live="polite">Choose a board to load community times.</p>
+        <div class="leaderboard-browser-actions">
+          <button class="leaderboard-load" id="leaderboard-load" type="button">Load rankings</button>
+        </div>
+        <form class="leaderboard-recovery" id="leaderboard-recovery" hidden>
+          <input id="leaderboard-recovery-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Name for recovered times" aria-label="Name for recovered times">
+          <button class="leaderboard-load" id="leaderboard-recovery-submit" type="submit">Recover saved PBs</button>
+          <p class="leaderboard-recovery-status" id="leaderboard-recovery-status">Imports the personal bests saved in this browser during the leaderboard outage. Recovered entries are labeled.</p>
+        </form>
       </section>
       <div class="screen">
         <canvas id="canvas" width="640" height="480" tabindex="0" aria-label="Pepsiman game screen"></canvas>
@@ -998,10 +1042,14 @@
             </div>
             <section class="run-result-board" aria-labelledby="run-result-board-title">
               <div class="run-result-board-title">
-                <h3 id="run-result-board-title">Personal best</h3>
-                <span class="run-result-board-status" id="run-result-board-status">Stored locally</span>
+                <h3 id="run-result-board-title">Global leaderboard</h3>
+                <span class="run-result-board-status" id="run-result-board-status">Connecting…</span>
               </div>
               <ol class="run-result-list" id="run-result-list"></ol>
+              <div class="run-result-submit">
+                <input id="run-result-name" type="text" maxlength="20" autocomplete="nickname" placeholder="Name for the board" aria-label="Leaderboard name">
+                <button class="qol-pause-action" id="run-result-submit" type="button">Submit time</button>
+              </div>
               <p class="run-result-note" id="run-result-note">The stopwatch uses emulated PlayStation frames, so host stutter does not change the result.</p>
             </section>
             <div class="run-result-actions">
@@ -1095,7 +1143,7 @@
         <ul class="feature-list">
           <li><strong>Enhanced pause menu</strong>Resume, restart the current level, select a reached scene, or return to title.</li>
           <li><strong>Persistent level select</strong>Reached scenes remain unlocked in this browser.</li>
-          <li><strong>Scene timing</strong>Guest-frame timing and per-scene personal bests stored in this browser.</li>
+          <li><strong>Scene leaderboards</strong>Guest-frame timing, personal bests, and optional online rankings after every clear.</li>
           <li><strong>Unlimited lives</strong>An optional assist keeps the remaining-life count topped up.</li>
           <li><strong>Focus pause</strong>Optionally freezes play when the tab loses focus.</li>
         </ul>
@@ -1168,12 +1216,19 @@
   const runResult = document.getElementById('run-result');
   const runResultList = document.getElementById('run-result-list');
   const runResultStatus = document.getElementById('run-result-board-status');
+  const runResultName = document.getElementById('run-result-name');
+  const runResultSubmit = document.getElementById('run-result-submit');
   const leaderboardLevelSelect = document.getElementById('leaderboard-level');
   const leaderboardRouteSelect = document.getElementById('leaderboard-route');
   const leaderboardRulesetSelect = document.getElementById('leaderboard-ruleset');
   const leaderboardBrowserList = document.getElementById('leaderboard-browser-list');
   const leaderboardBrowserStatus = document.getElementById('leaderboard-browser-status');
   const leaderboardBrowserPb = document.getElementById('leaderboard-browser-pb');
+  const leaderboardLoad = document.getElementById('leaderboard-load');
+  const leaderboardRecovery = document.getElementById('leaderboard-recovery');
+  const leaderboardRecoveryName = document.getElementById('leaderboard-recovery-name');
+  const leaderboardRecoverySubmit = document.getElementById('leaderboard-recovery-submit');
+  const leaderboardRecoveryStatus = document.getElementById('leaderboard-recovery-status');
   const themeToggle = document.getElementById('theme-toggle');
   const urlParams = new URLSearchParams(location.search);
   const preloadedTestAssets = urlParams.has('preloaded-test-assets');
@@ -1216,10 +1271,21 @@
   let atFreePlaySelector = false;
   let timeTrialResultSerial = 0;
   let visibleRunResult = null;
+  let leaderboardBrowserRequestSerial = 0;
+  let leaderboardPlayerName = localStorage.getItem('repsiman-leaderboard-name-v1') || '';
   const leaderboardRuns = new Map();
   const leaderboardPersonalBests = (() => {
     try { return JSON.parse(localStorage.getItem('repsiman-personal-bests-v1') || '{}'); }
     catch (_) { return {}; }
+  })();
+  const leaderboardPlayerId = (() => {
+    let id = localStorage.getItem('repsiman-leaderboard-player-v1');
+    if (!/^[a-f0-9-]{16,64}$/i.test(id || '')) {
+      id = globalThis.crypto?.randomUUID?.() ||
+        `${Date.now().toString(16)}-${Math.random().toString(16).slice(2)}`;
+      localStorage.setItem('repsiman-leaderboard-player-v1', id);
+    }
+    return id;
   })();
   let previousGamepadButtons = [];
   let previousGamepadNavDirection = 0;
@@ -1716,28 +1782,50 @@
     return `${level}:${route}:${ruleset}`;
   }
 
-  function refreshLeaderboardBrowser() {
+  function renderLeaderboardBrowserEntries(entries = [], emptyText = 'No times yet. Be the first.') {
+    if (!entries.length) {
+      const empty = document.createElement('li');
+      empty.className = 'empty';
+      empty.textContent = emptyText;
+      leaderboardBrowserList.replaceChildren(empty);
+      return;
+    }
+    leaderboardBrowserList.replaceChildren(...entries.slice(0, 10).map(entry => {
+      const item = document.createElement('li');
+      const name = document.createElement('span');
+      name.textContent = entry.recovered ? `${entry.name} · recovered` : entry.name;
+      const time = document.createElement('time');
+      time.textContent = formatTrialTicks(entry.ticks);
+      item.append(name, time);
+      return item;
+    }));
+  }
+
+  async function refreshLeaderboardBrowser() {
+    leaderboardBrowserList.dataset.loaded = 'true';
+    const requestSerial = ++leaderboardBrowserRequestSerial;
     const level = leaderboardLevelSelect.value;
     const route = leaderboardRouteSelect.value;
     const ruleset = leaderboardRulesetSelect.value;
     const personalBest = Number(leaderboardPersonalBests[trialBoardKey(level, route, ruleset)]?.ticks || 0);
     leaderboardBrowserPb.textContent = personalBest ? `PB ${formatTrialTicks(personalBest)}` : 'PB —';
-    if (!personalBest) {
-      const empty = document.createElement('li');
-      empty.className = 'empty';
-      empty.textContent = 'No personal best yet.';
-      leaderboardBrowserList.replaceChildren(empty);
-      leaderboardBrowserStatus.textContent = 'Finish this scene to save a local time.';
-      return;
+    leaderboardBrowserStatus.textContent = 'Loading top times…';
+    try {
+      const query = new URLSearchParams({ level, route, ruleset, playerId: leaderboardPlayerId });
+      const response = await fetch(`/api/leaderboard?${query}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Leaderboard unavailable (${response.status})`);
+      const payload = await response.json();
+      if (requestSerial !== leaderboardBrowserRequestSerial) return;
+      const entries = payload.entries || [];
+      renderLeaderboardBrowserEntries(entries);
+      leaderboardBrowserStatus.textContent = payload.playerRank
+        ? `Your best ranks #${payload.playerRank}`
+        : `${entries.length} recorded time${entries.length === 1 ? '' : 's'}`;
+    } catch (_) {
+      if (requestSerial !== leaderboardBrowserRequestSerial) return;
+      renderLeaderboardBrowserEntries();
+      leaderboardBrowserStatus.textContent = 'Online leaderboard unavailable · personal bests still save locally.';
     }
-    const item = document.createElement('li');
-    const name = document.createElement('span');
-    name.textContent = 'Your best';
-    const time = document.createElement('time');
-    time.textContent = formatTrialTicks(personalBest);
-    item.append(name, time);
-    leaderboardBrowserList.replaceChildren(item);
-    leaderboardBrowserStatus.textContent = 'Stored only in this browser.';
   }
 
   leaderboardLevelSelect.replaceChildren(...levelDefinitions.map(level => {
@@ -1748,12 +1836,101 @@
   }));
   leaderboardLevelSelect.value = '1-1';
   for (const select of [leaderboardLevelSelect, leaderboardRouteSelect, leaderboardRulesetSelect]) {
-    select.addEventListener('change', refreshLeaderboardBrowser);
+    select.addEventListener('change', () => {
+      if (leaderboardBrowserList.dataset.loaded === 'true') {
+        void refreshLeaderboardBrowser();
+        return;
+      }
+      const board = trialBoardKey(
+        leaderboardLevelSelect.value,
+        leaderboardRouteSelect.value,
+        leaderboardRulesetSelect.value
+      );
+      const ticks = Number(leaderboardPersonalBests[board]?.ticks || 0);
+      leaderboardBrowserPb.textContent = ticks ? `PB ${formatTrialTicks(ticks)}` : 'PB —';
+    });
   }
-  refreshLeaderboardBrowser();
+  renderLeaderboardBrowserEntries([], 'Load rankings to see community times.');
+  leaderboardLoad.addEventListener('click', () => void refreshLeaderboardBrowser());
 
   function persistPersonalBests() {
     localStorage.setItem('repsiman-personal-bests-v1', JSON.stringify(leaderboardPersonalBests));
+  }
+
+  const recoveryEntries = Object.entries(leaderboardPersonalBests).flatMap(([board, result]) => {
+    const [level, route, ruleset, ...extra] = board.split(':');
+    const ticks = Number(result?.ticks);
+    const achievedAt = Number(result?.achievedAt);
+    if (extra.length || !/^[1-4]-[1-3]$/.test(level) ||
+        !['campaign', 'practice'].includes(route) ||
+        !['original', 'enhanced', 'assisted'].includes(ruleset) ||
+        !Number.isInteger(ticks) || !Number.isInteger(achievedAt) ||
+        achievedAt < 1784874189000)
+      return [];
+    return [{ level, route, ruleset, ticks, achievedAt }];
+  });
+  leaderboardRecoveryName.value = leaderboardPlayerName;
+  leaderboardRecovery.hidden = !recoveryEntries.length ||
+    localStorage.getItem('repsiman-leaderboard-recovery-v1') === 'done';
+  leaderboardRecovery.addEventListener('submit', async event => {
+    event.preventDefault();
+    const name = leaderboardRecoveryName.value.trim().replace(/\s+/g, ' ').slice(0, 20);
+    if (!name) {
+      leaderboardRecoveryStatus.textContent = 'Enter the name to use for the recovered times.';
+      leaderboardRecoveryName.focus();
+      return;
+    }
+    leaderboardRecoveryName.disabled = true;
+    leaderboardRecoverySubmit.disabled = true;
+    leaderboardRecoverySubmit.textContent = 'Recovering…';
+    try {
+      const response = await fetch('/api/recovery', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          playerId: leaderboardPlayerId,
+          name,
+          entries: recoveryEntries
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok)
+        throw new Error(payload.error || `Recovery failed (${response.status})`);
+      leaderboardPlayerName = name;
+      localStorage.setItem('repsiman-leaderboard-name-v1', name);
+      localStorage.setItem('repsiman-leaderboard-recovery-v1', 'done');
+      leaderboardRecoveryStatus.textContent =
+        `${payload.imported} saved personal best${payload.imported === 1 ? '' : 's'} recovered.`;
+      leaderboardRecoverySubmit.textContent = 'Recovered';
+      await refreshLeaderboardBrowser();
+    } catch (error) {
+      leaderboardRecoveryStatus.textContent = error.message || 'Could not recover saved times.';
+      leaderboardRecoveryName.disabled = false;
+      leaderboardRecoverySubmit.disabled = false;
+      leaderboardRecoverySubmit.textContent = 'Try recovery';
+    }
+  });
+
+  async function requestLeaderboardRun(meta) {
+    try {
+      const response = await fetch('/api/runs/start', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          level: meta.level,
+          route: meta.route,
+          ruleset: meta.ruleset,
+          playerId: leaderboardPlayerId
+        })
+      });
+      if (!response.ok) throw new Error(`Leaderboard unavailable (${response.status})`);
+      const payload = await response.json();
+      meta.token = payload.token || null;
+      return meta.token;
+    } catch (error) {
+      meta.onlineError = error;
+      return null;
+    }
   }
 
   function syncActiveTimeTrial() {
@@ -1766,25 +1943,49 @@
       serial,
       level,
       route: levelLaunchMode === 'freeplay' ? 'practice' : 'campaign',
-      ruleset: trialRuleset(settings.unlimitedLives ? TRIAL_FLAG_UNLIMITED_LIVES : 0)
+      ruleset: trialRuleset(settings.unlimitedLives ? TRIAL_FLAG_UNLIMITED_LIVES : 0),
+      token: null,
+      onlineError: null
     };
+    meta.tokenPromise = requestLeaderboardRun(meta);
     leaderboardRuns.set(serial, meta);
   }
 
-  function renderPersonalBestResult(result) {
-    runResultList.replaceChildren();
-    if (result.bestTicks) {
+  function renderLeaderboardEntries(entries = []) {
+    runResultList.replaceChildren(...entries.slice(0, 5).map(entry => {
       const item = document.createElement('li');
       const name = document.createElement('span');
-      name.textContent = 'Your best';
+      name.textContent = entry.recovered ? `${entry.name} · recovered` : entry.name;
       const time = document.createElement('time');
-      time.textContent = formatTrialTicks(result.bestTicks);
+      time.textContent = formatTrialTicks(entry.ticks);
       item.append(name, time);
-      runResultList.append(item);
+      return item;
+    }));
+  }
+
+  async function refreshLeaderboard(result = visibleRunResult) {
+    if (!result) return;
+    runResultStatus.textContent = 'Loading top times…';
+    try {
+      const query = new URLSearchParams({
+        level: result.level,
+        route: result.route,
+        ruleset: result.ruleset,
+        playerId: leaderboardPlayerId
+      });
+      const response = await fetch(`/api/leaderboard?${query}`, { cache: 'no-store' });
+      if (!response.ok) throw new Error(`Leaderboard unavailable (${response.status})`);
+      const payload = await response.json();
+      if (result !== visibleRunResult) return;
+      renderLeaderboardEntries(payload.entries || []);
+      runResultStatus.textContent = payload.playerRank
+        ? `Your best ranks #${payload.playerRank}`
+        : `${payload.entries?.length || 0} recorded time${payload.entries?.length === 1 ? '' : 's'}`;
+    } catch (_) {
+      if (result !== visibleRunResult) return;
+      renderLeaderboardEntries();
+      runResultStatus.textContent = 'Online board unavailable · local PB saved';
     }
-    runResultStatus.textContent = result.eligible
-      ? 'Saved in this browser'
-      : 'Paused run · not saved';
   }
 
   function showTimeTrialResult(result) {
@@ -1808,14 +2009,19 @@
     } else {
       category.textContent = result.ruleset;
     }
+    runResultName.value = leaderboardPlayerName;
+    runResultName.disabled = !result.eligible;
+    runResultSubmit.disabled = !result.eligible;
+    runResultSubmit.textContent = 'Submit time';
     document.getElementById('run-result-note').textContent = result.eligible
       ? 'Timed in emulated PlayStation frames, so host stutter does not change the result.'
-      : 'This attempt used pause. Its time is shown, but it is not saved.';
+      : 'This attempt used pause. Its time is shown, but it is not saved or submitted.';
     document.getElementById('run-result-continue').textContent =
       result.route === 'practice' ? 'Choose scene' : 'Continue';
-    renderPersonalBestResult(result);
+    renderLeaderboardEntries();
     runResult.hidden = false;
     runResult.querySelector('#run-result-continue').focus();
+    void refreshLeaderboard(result);
   }
 
   function consumeTimeTrialResult() {
@@ -1835,17 +2041,25 @@
       serial: runSerial,
       level,
       route: levelLaunchMode === 'freeplay' ? 'practice' : 'campaign',
-      ruleset: trialRuleset(flags)
+      ruleset: trialRuleset(flags),
+      token: null,
+      onlineError: new Error('This run started without an online ticket.')
     };
     const eligible = !(flags & TRIAL_FLAG_PAUSED);
     const ruleset = flags & TRIAL_FLAG_UNLIMITED_LIVES ? 'assisted' : meta.ruleset;
-    meta.ruleset = ruleset;
+    if (ruleset !== meta.ruleset) {
+      meta.ruleset = ruleset;
+      meta.token = null;
+      meta.onlineError = new Error('The run settings changed after its online ticket was issued.');
+      meta.tokenPromise = Promise.resolve(null);
+    }
     const board = trialBoardKey(level, meta.route, ruleset);
     const previousBest = Number(leaderboardPersonalBests[board]?.ticks || 0);
     if (eligible && (!previousBest || ticks < previousBest)) {
       leaderboardPersonalBests[board] = { ticks, achievedAt: Date.now() };
       persistPersonalBests();
-      refreshLeaderboardBrowser();
+      if (leaderboardBrowserList.dataset.loaded === 'true')
+        void refreshLeaderboardBrowser();
     }
     const bestTicks = Number(leaderboardPersonalBests[board]?.ticks || previousBest || 0);
     markLevelCompleted(level);
@@ -1880,8 +2094,56 @@
     void launchLevel(stage, scene, 'restart');
   }
 
+  async function submitTimeTrialResult() {
+    const result = visibleRunResult;
+    const name = runResultName.value.trim().replace(/\s+/g, ' ').slice(0, 20);
+    if (!result?.eligible) return;
+    if (!name) {
+      runResultStatus.textContent = 'Enter a name first.';
+      runResultName.focus();
+      return;
+    }
+    leaderboardPlayerName = name;
+    localStorage.setItem('repsiman-leaderboard-name-v1', name);
+    runResultSubmit.disabled = true;
+    runResultSubmit.textContent = 'Submitting…';
+    const token = result.token || await result.tokenPromise;
+    if (!token) {
+      runResultStatus.textContent = 'This run started offline · local PB saved';
+      runResultSubmit.textContent = 'Submit time';
+      runResultSubmit.disabled = false;
+      return;
+    }
+    try {
+      const response = await fetch('/api/runs', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({
+          token,
+          playerId: leaderboardPlayerId,
+          name,
+          ticks: result.ticks,
+          flags: result.flags,
+          build: 'repsiman-v1'
+        })
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.error || `Submission failed (${response.status})`);
+      runResultStatus.textContent = payload.rank ? `Submitted · rank #${payload.rank}` : 'Time submitted';
+      runResultSubmit.textContent = 'Submitted';
+      await refreshLeaderboard(result);
+      if (leaderboardBrowserList.dataset.loaded === 'true')
+        void refreshLeaderboardBrowser();
+    } catch (error) {
+      runResultStatus.textContent = error.message || 'Could not submit this time.';
+      runResultSubmit.textContent = 'Try again';
+      runResultSubmit.disabled = false;
+    }
+  }
+
   document.getElementById('run-result-continue').addEventListener('click', continueAfterTimeTrial);
   document.getElementById('run-result-replay').addEventListener('click', replayTimeTrialScene);
+  runResultSubmit.addEventListener('click', submitTimeTrialResult);
 
   function reconcileCampaignProgress(key) {
     const targetIndex = levelDefinitions.findIndex(level =>
@@ -2320,6 +2582,13 @@
 
   window.addEventListener('keydown', event => {
     if (!runResult.hidden) {
+      if (event.target === runResultName) {
+        if (event.code === 'Enter' || event.code === 'NumpadEnter') {
+          void submitTimeTrialResult();
+          event.preventDefault();
+        }
+        return;
+      }
       const actions = [...runResult.querySelectorAll('button:not(:disabled)')];
       const current = Math.max(0, actions.indexOf(document.activeElement));
       if (['ArrowUp', 'ArrowLeft', 'ArrowDown', 'ArrowRight'].includes(event.code)) {
@@ -2520,7 +2789,8 @@
     setRunning(true);
     showTimeTrialResult({
       level: '1-1', route: 'campaign', ruleset: 'enhanced', ticks: 5123,
-      flags: 0, eligible: true, bestTicks: 4988
+      flags: 0, eligible: true, bestTicks: 4988, token: null,
+      tokenPromise: Promise.resolve(null)
     });
   } else {
     requestAnimationFrame(pollGameUi);

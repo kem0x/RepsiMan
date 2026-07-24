@@ -125,9 +125,11 @@ signal.
 ## Time trial development
 
 The scene timer counts emulated PlayStation VBLANKs, so host slowdown does not
-change a result. Per-scene personal bests are stored in the browser's local
-storage and never make a network request. The production package is a fully
-static Cloudflare Pages deployment with no Function, Worker, or D1 binding.
+change a result. Per-scene personal bests are always stored in the browser's
+local storage. Players can optionally load community rankings and submit
+eligible clears. The production package routes only `/api/*` through a Pages
+Function backed by D1; HTML, WebAssembly, JavaScript, images, and other game
+assets remain static Pages requests.
 
 ## Test from another device on the LAN
 
