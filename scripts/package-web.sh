@@ -12,11 +12,10 @@ case "$output_dir" in
         ;;
 esac
 
-html="$build_dir/Pepsiman_Recompiled.html"
 javascript="$build_dir/Pepsiman_Recompiled.js"
 wasm="$build_dir/Pepsiman_Recompiled.wasm"
 
-for file in "$html" "$javascript" "$wasm"; do
+for file in "$javascript" "$wasm"; do
     if [ ! -f "$file" ]; then
         echo "Missing browser build artifact: $file" >&2
         exit 1
@@ -25,10 +24,12 @@ done
 
 rm -rf "$output_dir"
 mkdir -p "$output_dir"
-cp "$html" "$output_dir/index.html"
+sed 's#{{{ SCRIPT }}}#<script async src="Pepsiman_Recompiled.js"></script>#' \
+    "$root/web/shell.html" > "$output_dir/index.html"
 cp "$javascript" "$output_dir/Pepsiman_Recompiled.js"
 cp "$wasm" "$output_dir/Pepsiman_Recompiled.wasm"
 cp "$root/web/_headers" "$output_dir/_headers"
+cp "$root/web/_routes.json" "$output_dir/_routes.json"
 cp "$root/web/manifest.webmanifest" "$output_dir/manifest.webmanifest"
 cp "$root/web/sw.js" "$output_dir/sw.js"
 cp "$root/web/og.png" "$output_dir/og.png"
