@@ -67,6 +67,17 @@ lets releases be versioned independently.
 The separate `kem0x/Recomps` project provides the collection directory at
 `recomps.ol.mr`; the v1 game origin is `pepsiman.ol.mr`.
 
+The Pages package is fully static. Do not attach a Pages Function or Worker to
+the project. Configure `pm.ol.mr` as a zone-level Cloudflare Single Redirect
+instead of a Worker:
+
+- Request URL: `http*://pm.ol.mr/*`
+- Target URL: `https://pepsiman.ol.mr/${2}`
+- Status: `301`
+- Preserve query string: enabled
+
+Remove the former `pm-shortlink` Worker after the redirect rule is active.
+
 Browser storage is origin-scoped. Memory cards, unlocks, settings, and remembered
 file permissions from the former `repsiman.ol.mr` origin cannot migrate merely
 through a DNS rename. Keep the former `repsiman` Pages project and origin

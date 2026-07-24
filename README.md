@@ -85,7 +85,7 @@ Open <http://127.0.0.1:8080/Pepsiman_Recompiled.html>. Do not open the HTML file
 directly; the threaded build needs the headers supplied by `web/serve.py`.
 
 The browser build includes controller support, remapping, local saves,
-remembered files, scene leaderboards, widescreen, 60 FPS smoothing, and optional QoL settings. See
+remembered files, per-scene personal bests, widescreen, 60 FPS smoothing, and optional QoL settings. See
 [web/README.md](web/README.md) for detailed browser and LAN testing notes.
 
 ## Deploy to Cloudflare Pages
@@ -99,14 +99,6 @@ npx wrangler login
 npx wrangler pages project create "$CF_PAGES_PROJECT" --production-branch main
 ```
 
-Create and migrate the D1 leaderboard once. Forks should replace the database
-ID in `wrangler.toml` with the ID printed by the create command:
-
-```sh
-npx wrangler d1 create pepsiman-leaderboard
-npx wrangler d1 execute LEADERBOARD_DB --remote --file=migrations/0001_leaderboard.sql
-```
-
 Package and deploy the public browser build:
 
 ```sh
@@ -116,7 +108,8 @@ npx wrangler pages deploy dist-web --project-name "$CF_PAGES_PROJECT" --branch m
 
 The package script copies only the public shell, JavaScript runtime, WASM module,
 redistributable OpenBIOS images, PWA metadata/icons, social card, and required
-Pages worker/headers. It rejects a missing build and never copies `.data`, proprietary
+Pages headers. The deployment is fully static and does not include Pages Functions
+or a Worker. The script rejects a missing build and never copies `.data`, proprietary
 BIOS images, CUE, or game BIN files.
 
 Add a custom domain from the Pages project's **Custom domains** settings in the

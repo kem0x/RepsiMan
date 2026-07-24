@@ -39,7 +39,6 @@ self.addEventListener('fetch', event => {
   /* Private LAN test assets contain the user's disc. They must always
    * come directly from the Mac and must never enter the PWA cache. */
   if (url.pathname.startsWith('/__repsiman_assets__/')) return;
-  if (url.pathname.startsWith('/api/')) return;
 
   if (request.mode === 'navigate') {
     event.respondWith(fetch(request).catch(() => caches.match('/index.html')));
