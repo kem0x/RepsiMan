@@ -122,20 +122,12 @@ controller sampling window and are suitable for deterministic menu automation.
 and Level Select and waits for the runtime's explicit level-action completion
 signal.
 
-## Leaderboard development
+## Time trial development
 
 The scene timer counts emulated PlayStation VBLANKs, so host slowdown does not
-change a result. Personal bests work on the normal local server. To test the D1
-API and global board locally, package the build and run:
-
-```sh
-scripts/package-web.sh
-npx wrangler d1 execute LEADERBOARD_DB --local --file=migrations/0001_leaderboard.sql
-npx wrangler pages dev dist-web
-```
-
-Open the Wrangler URL. Production uses the same migration and the
-`LEADERBOARD_DB` binding in `wrangler.toml`.
+change a result. Per-scene personal bests are stored in the browser's local
+storage and never make a network request. The production package is a fully
+static Cloudflare Pages deployment with no Function, Worker, or D1 binding.
 
 ## Test from another device on the LAN
 
