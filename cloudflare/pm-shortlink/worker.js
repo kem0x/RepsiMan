@@ -8,7 +8,7 @@ export default {
       status: 301,
       headers: {
         Location: target.toString(),
-        'Cache-Control': 'public, max-age=300'
+        'Cache-Control': 'public, max-age=86400'
       }
     });
   }
