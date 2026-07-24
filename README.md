@@ -114,8 +114,7 @@ BIOS images, CUE, or game BIN files.
 
 Add a custom domain from the Pages project's **Custom domains** settings in the
 Cloudflare dashboard. Keep the generated `_headers` file: its COOP/COEP headers
-are required by the threaded WebAssembly build. Maintainer-specific project and
-domain details are in [PUBLICATION.md](PUBLICATION.md).
+are required by the threaded WebAssembly build.
 
 ## Licensing and game assets
 
@@ -133,5 +132,3 @@ distributed under the MIT license; provenance and checksums are recorded in
 *Pepsiman*, PlayStation, and related names and assets belong to their respective
 owners. This is an unofficial preservation and engineering project and is not
 affiliated with or endorsed by them.
-
-See [PUBLICATION.md](PUBLICATION.md) before creating a public repository.
